@@ -7,11 +7,23 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
-test("index.html contains PWA shell and storage key", () => {
+test("index.html loads app and profile gate", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(html, /daily-core-v3/);
+  assert.match(html, /id="userGate"/);
+  assert.match(html, /src="\.\/app\.js"/);
   assert.match(html, /class="app"/);
-  assert.match(html, /service-worker\.js/);
+});
+
+test("app.js registers service worker", () => {
+  const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  assert.match(js, /service-worker\.js/);
+});
+
+test("app.js uses per-user storage prefix", () => {
+  const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  assert.match(js, /daily-core-v3-\$\{/);
+  assert.match(js, /David/);
+  assert.match(js, /Michalis/);
 });
 
 test("manifest.webmanifest is valid and points to start URL", () => {
@@ -24,6 +36,7 @@ test("manifest.webmanifest is valid and points to start URL", () => {
 
 test("service worker lists cached static assets", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
+  assert.match(sw, /\.\/app\.js/);
   assert.match(sw, /index\.html/);
   assert.match(sw, /manifest\.webmanifest/);
 });
