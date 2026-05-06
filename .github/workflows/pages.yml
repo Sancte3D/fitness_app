@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: "22"
       - name: Run smoke tests
-        run: node --test daily_core_pwa_github_pages/test/
+        run: node --test daily_core_pwa_github_pages/test/smoke.test.mjs
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
