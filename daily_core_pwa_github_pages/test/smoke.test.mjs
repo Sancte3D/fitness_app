@@ -7,11 +7,41 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
-test("index.html contains PWA shell and storage key", () => {
+test("index loads Neue Haas Unica @font-face and scale vars", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(html, /daily-core-v3/);
+  assert.match(html, /@font-face/);
+  assert.match(html, /--font-ui:"Neue Haas Unica"/);
+  assert.match(html, /--size-body:15px/);
+});
+
+test("index uses Electric Kiwi theme tokens", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(html, /--kiwi-500:#CCFF00/);
+  assert.match(html, /--neutral-050:#F7F7F2/);
+});
+
+test("index.html loads app and profile gate", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(html, /id="userGate"/);
+  assert.match(html, /src="\.\/app\.js"/);
   assert.match(html, /class="app"/);
-  assert.match(html, /service-worker\.js/);
+});
+
+test("app.js registers service worker", () => {
+  const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  assert.match(js, /service-worker\.js/);
+});
+
+test("app.js uses per-user storage prefix", () => {
+  const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  assert.match(js, /daily-core-v3-\$\{/);
+  assert.match(js, /David/);
+  assert.match(js, /Michalis/);
+});
+
+test("persona avatars exist", () => {
+  assert.ok(fs.existsSync(path.join(root, "persona-david.svg")));
+  assert.ok(fs.existsSync(path.join(root, "persona-michalis.svg")));
 });
 
 test("manifest.webmanifest is valid and points to start URL", () => {
@@ -24,6 +54,7 @@ test("manifest.webmanifest is valid and points to start URL", () => {
 
 test("service worker lists cached static assets", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
+  assert.match(sw, /persona-david\.svg/);
   assert.match(sw, /index\.html/);
   assert.match(sw, /manifest\.webmanifest/);
 });

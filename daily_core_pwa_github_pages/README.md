@@ -1,15 +1,18 @@
 # Daily Core
 
-Private PWA training app for daily push-ups and plank sessions.
+Private PWA für tägliche Liegestütze und Planks – Profile **David** und **Michalis**, optional Cloud-Sync über Supabase.
+
+## Cloud-Sync (gemeinsamer Stand)
+
+1. Projekt auf [Supabase](https://supabase.com) anlegen.
+2. SQL aus `../supabase/schema.sql` im SQL Editor ausführen (Tabelle + Richtlinien).
+3. In `sync-config.js` die **Project URL** und den **anon public** Key eintragen (`Settings` → `API`).
+4. App deployen oder lokal öffnen; beim Start Profil wählen. Jeder Name hat eine eigene Zeile in der Datenbank; der Partner-Kalender wird schreibgeschützt angezeigt (alle ~12 s aktualisiert).
+
+Ohne Supabase bleibt alles **nur lokal** und getrennt nach gewähltem Profil (verschiedene `localStorage`-Keys).
 
 ## GitHub Pages
 
-1. Neues Repository erstellen, z. B. `daily-core`.
-2. Alle Dateien aus diesem Ordner in den Repository-Root hochladen.
-3. `Settings` → `Pages`.
-4. Source: `Deploy from a branch`.
-5. Branch: `main`, Folder: `/root`.
-6. GitHub-Pages-Link auf dem iPhone in Safari öffnen.
-7. Teilen → Zum Home-Bildschirm.
+Pages-Deploy wird per GitHub Actions aus diesem Ordner gebaut (siehe `.github/workflows/pages.yml` im Repo-Root).
 
-Trainingsdaten bleiben lokal im Browser/PWA-Speicher und werden nicht auf GitHub gespeichert.
+Trainingsdaten liegen auf dem Gerät; mit aktivem Sync zusätzlich in deiner Supabase-Datenbank (nicht im Git-Repository).
