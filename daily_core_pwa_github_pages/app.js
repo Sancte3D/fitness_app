@@ -62,6 +62,7 @@ const ids = [
   "userGate",
   "userEyebrow",
   "userSwitchBtn",
+  "peerPanel",
   "peerSectionTitle",
   "peerIntro",
   "peerFreshness",
@@ -356,19 +357,20 @@ function fillCalendarGrid(gridEl, hist) {
 }
 
 function renderPeer() {
+  const panel = el.peerPanel;
+  if (!getSyncCfg()) {
+    if (panel) panel.classList.add("peer-panel--hidden");
+    el.settingsStorageNote.textContent = "nur lokal · Profil";
+    return;
+  }
+  if (panel) panel.classList.remove("peer-panel--hidden");
+
   const peer = USER_NAMES.find((u) => u !== activeUser);
   el.peerSectionTitle.textContent = peer ? `${peer}` : "Partner";
   el.peerIntro.textContent = peer
     ? `Kalender und Streak von ${peer} (Nur-Lesen). Nur ${peer} kann dort trainieren und Speichern.`
     : "—";
 
-  if (!getSyncCfg()) {
-    el.peerFreshness.textContent = "Cloud nicht aktiviert";
-    el.peerStats.replaceChildren();
-    el.peerCalendarGrid.replaceChildren();
-    el.settingsStorageNote.textContent = "nur lokal · Profil";
-    return;
-  }
   el.settingsStorageNote.textContent = "Profil + Supabase";
 
   if (!peer) {
@@ -428,6 +430,11 @@ async function refreshPeer() {
 
 function startPeerPoll() {
   clearInterval(peerTimer);
+  peerTimer = null;
+  if (!getSyncCfg()) {
+    renderPeer();
+    return;
+  }
   refreshPeer();
   peerTimer = setInterval(refreshPeer, 12000);
 }
