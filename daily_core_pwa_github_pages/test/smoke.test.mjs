@@ -7,6 +7,12 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
+test("index uses Electric Kiwi theme tokens", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(html, /--kiwi-500:#CCFF00/);
+  assert.match(html, /--neutral-050:#F7F7F2/);
+});
+
 test("index.html loads app and profile gate", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
