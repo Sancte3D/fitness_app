@@ -7,6 +7,13 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
+test("index loads Neue Haas Unica @font-face and scale vars", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(html, /@font-face/);
+  assert.match(html, /--font-ui:"Neue Haas Unica"/);
+  assert.match(html, /--size-body:15px/);
+});
+
 test("index uses Electric Kiwi theme tokens", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /--kiwi-500:#CCFF00/);
