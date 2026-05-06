@@ -2,6 +2,7 @@
 
 const USER_NAMES = ["David", "Michalis"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
+const PERSONA_ICON = { David: "./persona-david.svg", Michalis: "./persona-michalis.svg" };
 const defaults = {
   pushGoal: 100,
   pushSets: 10,
@@ -69,6 +70,12 @@ const ids = [
   "settingsStorageNote",
 ];
 const el = {};
+
+function updatePersonaHeaderIcon() {
+  const img = $("personaHeaderIcon");
+  if (!img || !activeUser) return;
+  img.src = PERSONA_ICON[activeUser] || PERSONA_ICON.David;
+}
 
 function storageKey(user) {
   return `daily-core-v3-${user}`;
@@ -702,6 +709,7 @@ async function chooseUser(u) {
   localStorage.setItem(ACTIVE_USER_KEY, u);
   $("userGate").classList.remove("open");
   el.userEyebrow.textContent = u;
+  updatePersonaHeaderIcon();
   bindEvents();
   await loadInitialState();
   render();
@@ -725,6 +733,7 @@ function boot() {
     $("userGate").classList.remove("open");
     activeUser = stored;
     el.userEyebrow.textContent = activeUser;
+    updatePersonaHeaderIcon();
     bindEvents();
     loadInitialState().then(() => {
       render();

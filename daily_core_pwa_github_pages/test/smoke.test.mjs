@@ -26,6 +26,11 @@ test("app.js uses per-user storage prefix", () => {
   assert.match(js, /Michalis/);
 });
 
+test("persona avatars exist", () => {
+  assert.ok(fs.existsSync(path.join(root, "persona-david.svg")));
+  assert.ok(fs.existsSync(path.join(root, "persona-michalis.svg")));
+});
+
 test("manifest.webmanifest is valid and points to start URL", () => {
   const raw = fs.readFileSync(path.join(root, "manifest.webmanifest"), "utf8");
   const m = JSON.parse(raw);
@@ -36,7 +41,7 @@ test("manifest.webmanifest is valid and points to start URL", () => {
 
 test("service worker lists cached static assets", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /\.\/app\.js/);
+  assert.match(sw, /persona-david\.svg/);
   assert.match(sw, /index\.html/);
   assert.match(sw, /manifest\.webmanifest/);
 });
