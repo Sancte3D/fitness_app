@@ -1,15 +1,16 @@
 "use strict";
 
 /**
- * Static PWA (no React/Vite). Profile icons: PNG files in ./assets/personas/
- * (persona-*.png). Matching .svg files stay in repo as editable sources.
- * Paths are defined ONLY in PERSONA_ICON_SRC — not scraped from the DOM.
+ * Static PWA (no React/Vite). The profile gate ("Wer trainiert?") embeds each
+ * persona as inline SVG in index.html (always correct art, no extra fetch).
+ * Header chip still uses PNG files in ./assets/personas/ (persona-*.png); paths
+ * are ONLY in PERSONA_ICON_SRC — not scraped from the DOM.
  */
 const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
 const PERSONA_FALLBACK_USER = "David";
 
-const PERSONA_ASSET_QS = "?v=52";
+const PERSONA_ASSET_QS = "?v=53";
 
 /** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {

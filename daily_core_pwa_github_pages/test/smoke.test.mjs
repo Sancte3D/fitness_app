@@ -27,23 +27,31 @@ test("index has no partner-only panel", () => {
   assert.ok(!html.includes('id="peerPanel"'));
 });
 
-test("index.html references persona PNG avatars", () => {
+test("index.html profile gate uses inline SVG icons; header uses PNG", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
   assert.match(html, /id="themeColorMeta"/);
   assert.match(html, /id="userGateTitle"/);
   assert.match(html, /src="\.\/app\.js"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-david\.png\?v=52"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-michalis\.png\?v=52"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-nico\.png\?v=52"/);
-  assert.ok(!/class="persona-avatar"[^>]*src="data:image/.test(html), "persona avatars must be file URLs, not data: URIs");
+  const gateOnly = html.split("<main")[0];
+  assert.ok(
+    !gateOnly.includes("assets/personas/persona-"),
+    "profile gate must embed vectors in HTML, not separate PNG requests",
+  );
+  assert.equal((html.match(/class="persona-gate-icon"/g) || []).length, 3);
+  assert.match(html, /M 38 32 A 16 16 0 0 1 38 64/);
+  assert.match(html, /M39,53\.09V51\.26/);
+  assert.match(html, /x2="68" y2="64"/);
+  assert.match(html, /persona-david\.png\?v=53/);
+  assert.ok(!html.includes("persona-michalis.png"), "Michalis gate is inline SVG; PNG only for header icon when active");
+  assert.ok(!/class="persona-avatar"[^>]*src="data:image/.test(html), "no data: URIs on raster avatars");
   assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear in profile gate HTML");
   assert.match(html, /class="persona-frame"/);
   assert.equal((html.match(/class="persona-frame"/g) || []).length, 3);
   assert.match(html, /id="personaHeaderIcon"/);
   assert.match(html, /class="settings-overlay"/);
   assert.match(html, /id="settingsPanel"/);
-  assert.match(html, /<!--\s*deploy-asset-rev:52\s*-->/);
+  assert.match(html, /<!--\s*deploy-asset-rev:53\s*-->/);
   assert.match(html, /purge.*unregister/s);
   assert.match(html, /role="dialog"/);
   assert.match(html, /apple-touch-icon\.png/);
@@ -106,8 +114,8 @@ test("service worker lists cached static assets", () => {
   assert.match(sw, /manifest\.webmanifest/);
   assert.match(sw, /assets\/personas\/persona-david\.png/);
   assert.match(sw, /icon-192\.png/);
-  assert.match(sw, /const CACHE_NAME="daily-core-v52"/);
-  assert.match(sw, /PERSONA_QS="\?v=52"/);
+  assert.match(sw, /const CACHE_NAME="daily-core-v53"/);
+  assert.match(sw, /PERSONA_QS="\?v=53"/);
 });
 
 test("referenced icons exist on disk", () => {
