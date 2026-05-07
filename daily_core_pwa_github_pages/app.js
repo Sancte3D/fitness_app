@@ -1,9 +1,9 @@
 "use strict";
 
 /**
- * Static PWA (no React/Vite). Profile icons are brand assets in ./assets/personas/.
- * Paths are defined ONLY in PERSONA_ICON_SRC below — not scraped from the DOM.
- * Shapes in the SVG files are vector artwork, not initials from JavaScript.
+ * Static PWA (no React/Vite). Profile icons: PNG files in ./assets/personas/
+ * (persona-*.png). Matching .svg files stay in repo as editable sources.
+ * Paths are defined ONLY in PERSONA_ICON_SRC — not scraped from the DOM.
  */
 const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
@@ -11,9 +11,9 @@ const PERSONA_FALLBACK_USER = "David";
 
 /** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
-  David: "./assets/personas/persona-david.svg",
-  Michalis: "./assets/personas/persona-michalis.svg",
-  Nico: "./assets/personas/persona-nico.svg",
+  David: "./assets/personas/persona-david.png",
+  Michalis: "./assets/personas/persona-michalis.png",
+  Nico: "./assets/personas/persona-nico.png",
 };
 
 function getProfileIconUrl(user) {

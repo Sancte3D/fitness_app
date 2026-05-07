@@ -27,15 +27,15 @@ test("index has no partner-only panel", () => {
   assert.ok(!html.includes('id="peerPanel"'));
 });
 
-test("index.html references persona SVG files for avatars", () => {
+test("index.html references persona PNG avatars", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
   assert.match(html, /id="themeColorMeta"/);
   assert.match(html, /id="userGateTitle"/);
   assert.match(html, /src="\.\/app\.js"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-david\.svg"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-michalis\.svg"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-nico\.svg"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-david\.png"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-michalis\.png"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-nico\.png"/);
   assert.ok(!/class="persona-avatar"[^>]*src="data:image/.test(html), "persona avatars must be file URLs, not data: URIs");
   assert.ok(!html.includes("Eigenes Konto"), "Eigenes Konto line remains removed from profile gate");
   assert.match(html, /class="persona-frame"/);
@@ -78,10 +78,13 @@ test("app.js uses per-user storage prefix", () => {
 });
 
 test("persona avatars exist", () => {
-  const d = path.join(root, "assets", "personas", "persona-david.svg");
-  assert.ok(fs.existsSync(d), `missing ${d}`);
-  assert.ok(fs.existsSync(path.join(root, "assets", "personas", "persona-michalis.svg")));
-  assert.ok(fs.existsSync(path.join(root, "assets", "personas", "persona-nico.svg")));
+  const b = path.join(root, "assets", "personas");
+  for (const f of ["persona-david.png", "persona-michalis.png", "persona-nico.png"]) {
+    assert.ok(fs.existsSync(path.join(b, f)), `missing ${f}`);
+  }
+  for (const f of ["persona-david.svg", "persona-michalis.svg", "persona-nico.svg"]) {
+    assert.ok(fs.existsSync(path.join(b, f)), `missing source ${f}`);
+  }
 });
 
 test("manifest.webmanifest is valid and points to start URL", () => {
@@ -99,7 +102,7 @@ test("service worker lists cached static assets", () => {
   assert.match(sw, /app\.js/);
   assert.match(sw, /index\.html/);
   assert.match(sw, /manifest\.webmanifest/);
-  assert.match(sw, /assets\/personas\/persona-david\.svg/);
+  assert.match(sw, /assets\/personas\/persona-david\.png/);
   assert.match(sw, /icon-192\.png/);
   assert.match(sw, /const CACHE_NAME="daily-core-v\d+"/);
 });
