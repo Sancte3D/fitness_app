@@ -30,7 +30,7 @@ test("index has no partner-only panel", () => {
 test("profile gate HTML is placeholders only; gate PNGs mounted by app.js", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
-  assert.match(html, /PROFILE GATE ICONS v59/);
+  assert.match(html, /PROFILE GATE ICONS v60/);
   const mainIdx = html.indexOf("<main");
   const gateCardStart = html.indexOf('class="user-gate-card"');
   assert.ok(gateCardStart !== -1 && mainIdx !== -1);
@@ -39,8 +39,8 @@ test("profile gate HTML is placeholders only; gate PNGs mounted by app.js", () =
   assert.ok(!gateCardHtml.includes("persona-gate-icon"));
   assert.ok(!gateCardHtml.includes("assets/personas/persona-"), "no raster in gate card HTML");
   assert.equal((gateCardHtml.match(/class="persona-frame"><\/span>/g) || []).length, 3);
-  assert.match(html, /persona-david\.png\?v=59/);
-  assert.match(html, /<!--\s*deploy-asset-rev:59\s*-->/);
+  assert.match(html, /persona-david\.png\?v=60/);
+  assert.match(html, /<!--\s*deploy-asset-rev:60\s*-->/);
   assert.ok(!/<text[\s>]/.test(gateCardHtml), "no SVG text in static gate");
   assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear");
   assert.match(html, /class="settings-overlay"/);
@@ -49,9 +49,11 @@ test("profile gate HTML is placeholders only; gate PNGs mounted by app.js", () =
 
 test("app.js mounts persona gate as PNG imgs (PERSONA_ICON_SRC, no inline SVG strings)", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"gate-png-v59"/);
+  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"gate-png-v60"/);
   assert.match(js, /buildPersonaGateImg/);
   assert.match(js, /mountProfileGateIcons/);
+  assert.match(js, /applyDisplayModeClass/);
+  assert.match(js, /pwa-standalone/);
   assert.match(js, /persona-gate-icon/);
   assert.match(js, /PERSONA_ICON_SRC/);
   assert.ok(!js.includes("PERSONA_GATE_MARKUP"));
@@ -85,22 +87,42 @@ test("persona-nico.svg uses original 64×80 mask paths (hair detail)", () => {
   assert.match(svg, /M29\.94,34\.61/);
 });
 
+test("index has iPhone / full-screen web app head configuration", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(html, /viewport-fit=cover/);
+  assert.match(html, /apple-mobile-web-app-capable/);
+  assert.match(html, /apple-mobile-web-app-status-bar-style/);
+  assert.match(html, /name="format-detection"/);
+  assert.match(html, /rel="apple-touch-icon"[^>]+apple-touch-icon\.png/);
+  assert.match(html, /touch-action:manipulation/);
+  assert.match(html, /-webkit-overflow-scrolling:touch/);
+  assert.match(html, /-webkit-fill-available/);
+});
+
 test("manifest.webmanifest is valid and points to start URL", () => {
   const raw = fs.readFileSync(path.join(root, "manifest.webmanifest"), "utf8");
   const m = JSON.parse(raw);
   assert.equal(m.name, "Daily Core");
+  assert.equal(m.lang, "de");
+  assert.ok(m.id);
   assert.ok(Array.isArray(m.icons) && m.icons.length >= 1);
   assert.ok(m.start_url);
 });
 
-test("service worker: v59, purge old daily-core caches, network-first for documents", () => {
+test("service worker: v60, purge old daily-core caches, network-first for documents", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v59"/);
-  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=59"/);
+  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v60"/);
+  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=60"/);
   assert.match(sw, /startsWith\("daily-core-"\)/);
   assert.match(sw, /networkFirstWithCacheFallback/);
   assert.match(sw, /navigate/);
   assert.match(sw, /\/app\.js/);
+});
+
+test("app mask icons use Electric Kiwi branding (vector source)", () => {
+  const svg = fs.readFileSync(path.join(root, "icon-192.svg"), "utf8");
+  assert.match(svg, /#CCFF00/);
+  assert.match(svg, /#111111/);
 });
 
 test("referenced icons exist on disk", () => {

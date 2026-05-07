@@ -9,7 +9,7 @@ const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
 const PERSONA_FALLBACK_USER = "David";
 
-const PERSONA_ASSET_QS = "?v=59";
+const PERSONA_ASSET_QS = "?v=60";
 
 /** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
@@ -17,7 +17,7 @@ const PERSONA_ICON_SRC = {
   Michalis: `./assets/personas/persona-michalis.png${PERSONA_ASSET_QS}`,
   Nico: `./assets/personas/persona-nico.png${PERSONA_ASSET_QS}`,
 };
-const PROFILE_GATE_ICON_VERSION = "gate-png-v59";
+const PROFILE_GATE_ICON_VERSION = "gate-png-v60";
 
 function buildPersonaGateImg(user) {
   const key = USER_NAMES.includes(user) ? user : PERSONA_FALLBACK_USER;
@@ -127,6 +127,18 @@ function updatePersonaHeaderIcon() {
   img.src = getProfileIconUrl(u);
   img.alt = `${u} Profil-Icon`;
   img.draggable = false;
+}
+
+function applyDisplayModeClass() {
+  try {
+    const standalone =
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      (window.matchMedia && window.matchMedia("(display-mode: fullscreen)").matches) ||
+      window.navigator.standalone === true;
+    document.documentElement.classList.toggle("pwa-standalone", !!standalone);
+  } catch {
+    /* ignore */
+  }
 }
 
 function storageKey(user) {
@@ -749,6 +761,7 @@ function boot() {
   ids.forEach((id) => {
     el[id] = $(id);
   });
+  applyDisplayModeClass();
   mountProfileGateIcons();
   const earlyTheme = readStoredUserTheme();
   if (earlyTheme) applyThemeChrome(earlyTheme);
