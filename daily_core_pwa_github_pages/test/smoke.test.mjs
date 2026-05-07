@@ -30,7 +30,7 @@ test("index has no partner-only panel", () => {
 test("profile gate HTML is placeholders only; real SVG comes from app.js", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
-  assert.match(html, /PROFILE GATE ICONS v56/);
+  assert.match(html, /PROFILE GATE ICONS v57/);
   const mainIdx = html.indexOf("<main");
   const gateCardStart = html.indexOf('class="user-gate-card"');
   assert.ok(gateCardStart !== -1 && mainIdx !== -1);
@@ -39,8 +39,8 @@ test("profile gate HTML is placeholders only; real SVG comes from app.js", () =>
   assert.ok(!gateCardHtml.includes("persona-gate-icon"));
   assert.ok(!gateCardHtml.includes("assets/personas/persona-"), "no raster in gate card HTML");
   assert.equal((gateCardHtml.match(/class="persona-frame"><\/span>/g) || []).length, 3);
-  assert.match(html, /persona-david\.png\?v=56/);
-  assert.match(html, /<!--\s*deploy-asset-rev:56\s*-->/);
+  assert.match(html, /persona-david\.png\?v=57/);
+  assert.match(html, /<!--\s*deploy-asset-rev:57\s*-->/);
   assert.ok(!/<text[\s>]/.test(gateCardHtml), "no SVG text in static gate");
   assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear");
   assert.match(html, /class="settings-overlay"/);
@@ -49,12 +49,12 @@ test("profile gate HTML is placeholders only; real SVG comes from app.js", () =>
 
 test("app.js mounts persona gate from PERSONA_GATE_MARKUP (mask paths, no initials)", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"inline-real-svg-v56"/);
+  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"inline-real-svg-v57"/);
   assert.match(js, /PERSONA_GATE_MARKUP/);
   assert.match(js, /mountProfileGateIcons/);
-  assert.match(js, /a15\.5,15\.5,0,0,0,2\.61-1\.76/);
+  assert.match(js, /34\.68,43\.55/);
   assert.match(js, /3\.25-5S48\.84/);
-  assert.match(js, /a5\.43,5\.43/);
+  assert.match(js, /29\.94,34\.61/);
   assert.match(js, /41\.67,42/);
   assert.ok(!js.includes("<text"), "no text nodes in SVG markup strings");
   assert.ok(!js.includes("personaSrcMap"), "icons must not be scraped from DOM");
@@ -88,10 +88,10 @@ test("manifest.webmanifest is valid and points to start URL", () => {
   assert.ok(m.start_url);
 });
 
-test("service worker: v56, purge old daily-core caches, network-first for documents", () => {
+test("service worker: v57, purge old daily-core caches, network-first for documents", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v56"/);
-  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=56"/);
+  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v57"/);
+  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=57"/);
   assert.match(sw, /startsWith\("daily-core-"\)/);
   assert.match(sw, /networkFirstWithCacheFallback/);
   assert.match(sw, /navigate/);
