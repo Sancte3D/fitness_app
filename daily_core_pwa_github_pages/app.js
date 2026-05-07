@@ -1,8 +1,8 @@
 "use strict";
 
-const USER_NAMES = ["David", "Michalis"];
+const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
-const PERSONA_ICON = { David: "./persona-david.svg", Michalis: "./persona-michalis.svg" };
+const PERSONA_ICON = { David: "./persona-david.svg", Michalis: "./persona-michalis.svg", Nico: "./persona-nico.svg" };
 const defaults = {
   pushGoal: 100,
   pushSets: 10,
