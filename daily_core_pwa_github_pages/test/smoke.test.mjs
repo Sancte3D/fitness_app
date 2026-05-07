@@ -25,22 +25,21 @@ test("index has no partner-only panel", () => {
   assert.ok(!html.includes('id="peerPanel"'));
 });
 
-test("index.html loads app, profile gate, three inline avatars, header host", () => {
+test("index.html uses data-URI persona avatars (img, no file path)", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
   assert.match(html, /src="\.\/app\.js"/);
-  assert.match(html, /class="app"/);
-  assert.match(html, /data-user="Nico"/);
-  assert.ok(!html.includes("persona-david.svg"), "avatars should be inline, not img src");
+  assert.match(html, /data:image\/svg\+xml/);
+  assert.match(html, /class="persona-avatar"/);
   assert.equal((html.match(/class="persona-avatar"/g) || []).length, 3);
   assert.match(html, /id="personaHeaderIcon"/);
 });
 
-test("app.js registers service worker and inline persona markup", () => {
+test("app.js registers service worker and persona src map", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
   assert.match(js, /service-worker\.js/);
-  assert.match(js, /PERSONA_SVG_INNER/);
-  assert.match(js, /headerPersonaSvgMarkup/);
+  assert.match(js, /personaSrcMap/);
+  assert.match(js, /headerPersonaSrc/);
 });
 
 test("app.js uses per-user storage prefix", () => {
