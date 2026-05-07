@@ -36,6 +36,8 @@ test("index.html references persona SVG files for avatars", () => {
   assert.match(html, /src="\.\/assets\/personas\/persona-david\.svg"/);
   assert.match(html, /src="\.\/assets\/personas\/persona-michalis\.svg"/);
   assert.match(html, /src="\.\/assets\/personas\/persona-nico\.svg"/);
+  assert.ok(!/class="persona-avatar"[^>]*src="data:image/.test(html), "persona avatars must be file URLs, not data: URIs");
+  assert.ok(!html.includes("Eigenes Konto"), "Eigenes Konto line remains removed from profile gate");
   assert.match(html, /class="persona-frame"/);
   assert.equal((html.match(/class="persona-frame"/g) || []).length, 3);
   assert.match(html, /id="personaHeaderIcon"/);
@@ -44,6 +46,14 @@ test("index.html references persona SVG files for avatars", () => {
   assert.match(html, /aria-controls="userGate"/);
   assert.match(html, /role="dialog"/);
   assert.match(html, /apple-touch-icon\.png/);
+});
+
+test("settings panel is fixed modal (not in-page section)", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(html, /id="settingsPanel"[^>]*role="dialog"/);
+  assert.match(html, /id="settingsPanel"[^>]*aria-modal="true"/);
+  assert.match(html, /\.settings-overlay\{[^}]*position:fixed/);
+  assert.match(html, /settings-backdrop/);
 });
 
 test("app.js registers service worker and persona icon URLs", () => {
@@ -91,6 +101,7 @@ test("service worker lists cached static assets", () => {
   assert.match(sw, /manifest\.webmanifest/);
   assert.match(sw, /assets\/personas\/persona-david\.svg/);
   assert.match(sw, /icon-192\.png/);
+  assert.match(sw, /const CACHE_NAME="daily-core-v\d+"/);
 });
 
 test("referenced icons exist on disk", () => {
