@@ -27,13 +27,15 @@ test("index has no partner-only panel", () => {
   assert.ok(!html.includes('id="peerPanel"'));
 });
 
-test("index.html uses data-URI persona avatars (img, no file path)", () => {
+test("index.html references persona SVG files for avatars", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
   assert.match(html, /id="themeColorMeta"/);
   assert.match(html, /id="userGateTitle"/);
   assert.match(html, /src="\.\/app\.js"/);
-  assert.match(html, /data:image\/svg\+xml/);
+  assert.match(html, /src="\.\/persona-david\.svg"/);
+  assert.match(html, /src="\.\/persona-michalis\.svg"/);
+  assert.match(html, /src="\.\/persona-nico\.svg"/);
   assert.match(html, /class="persona-avatar"/);
   assert.equal((html.match(/class="persona-avatar"/g) || []).length, 3);
   assert.match(html, /id="personaHeaderIcon"/);
@@ -41,6 +43,7 @@ test("index.html uses data-URI persona avatars (img, no file path)", () => {
   assert.match(html, /id="settingsPanel"/);
   assert.match(html, /aria-controls="userGate"/);
   assert.match(html, /role="dialog"/);
+  assert.match(html, /apple-touch-icon\.png/);
 });
 
 test("app.js registers service worker and persona src map", () => {
@@ -74,6 +77,8 @@ test("manifest.webmanifest is valid and points to start URL", () => {
   assert.equal(m.name, "Daily Core");
   assert.ok(Array.isArray(m.icons) && m.icons.length >= 1);
   assert.ok(m.start_url);
+  const png = m.icons.find((i) => i.type === "image/png" && i.src.includes("icon-192.png"));
+  assert.ok(png, "manifest should list PNG app icons for install / iOS");
 });
 
 test("service worker lists cached static assets", () => {
@@ -81,10 +86,12 @@ test("service worker lists cached static assets", () => {
   assert.match(sw, /app\.js/);
   assert.match(sw, /index\.html/);
   assert.match(sw, /manifest\.webmanifest/);
+  assert.match(sw, /persona-david\.svg/);
+  assert.match(sw, /icon-192\.png/);
 });
 
 test("referenced icons exist on disk", () => {
-  for (const name of ["icon-192.svg", "icon-512.svg"]) {
+  for (const name of ["icon-192.svg", "icon-512.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png"]) {
     assert.ok(fs.existsSync(path.join(root, name)), `missing ${name}`);
   }
 });
