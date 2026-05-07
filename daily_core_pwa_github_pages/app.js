@@ -1,15 +1,15 @@
 "use strict";
 
 /**
- * Static PWA (no React/Vite). Profile gate icons: PERSONA_GATE_MARKUP in this file
- * (same geometry as assets/personas/*.svg) mounted by mountProfileGateIcons() — not
- * initials, not separate gate PNG fetch. Header uses PERSONA_ICON_SRC PNGs only.
+ * Static PWA (no React/Vite). Profile gate (“Wer trainiert?”) uses the same PNGs as
+ * the header (PERSONA_ICON_SRC), mounted by mountProfileGateIcons — avoids WebKit
+ * inline-SVG quirks where only some mask paths painted. SVG sources stay in assets/.
  */
 const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
 const PERSONA_FALLBACK_USER = "David";
 
-const PERSONA_ASSET_QS = "?v=57";
+const PERSONA_ASSET_QS = "?v=58";
 
 /** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
@@ -17,22 +17,17 @@ const PERSONA_ICON_SRC = {
   Michalis: `./assets/personas/persona-michalis.png${PERSONA_ASSET_QS}`,
   Nico: `./assets/personas/persona-nico.png${PERSONA_ASSET_QS}`,
 };
-const PROFILE_GATE_ICON_VERSION = "inline-real-svg-v57";
-const PERSONA_GATE_MARKUP = {
-  "David": "<rect width=\"96\" height=\"96\" rx=\"22\" fill=\"#000\"/><g transform=\"translate(16 8)\" fill=\"#FFFFFF\"><path d=\"M39,53.09V51.26A15,15,0,0,0,47,38v0c1.84-.19,3.25-2.29,3.25-5S48.84,28.22,47,28v0h4V27a4,4,0,0,0-4-4A12,12,0,0,0,35,11H29A12,12,0,0,0,17,23a4,4,0,0,0-4,4v1h4v0c-1.84.19-3.25,2.29-3.25,5s1.41,4.78,3.25,5v0a15,15,0,0,0,8,13.26v1.83c-8.71.88-14.51,5.1-16,11.69l2,.44c1.27-5.73,6.24-9.29,14-10.12v.16a4,4,0,0,0,2.32,3.64,10.51,10.51,0,0,0,9.36,0A4,4,0,0,0,39,55.26V55.1c7.78.83,12.75,4.39,14,10.12l2-.44C53.51,58.19,47.71,54,39,53.09ZM48.25,33c0,1.52-.62,2.69-1.25,3v-5.9C47.63,30.31,48.25,31.48,48.25,33Zm-32.5,0c0-1.52.62-2.69,1.25-2.95V36C16.37,35.69,15.75,34.52,15.75,33ZM19,38V28h3a11,11,0,0,0,10-6.42A11,11,0,0,0,42,28h3V38a13,13,0,0,1-26,0ZM35.82,57.09a8.43,8.43,0,0,1-7.64,0A2,2,0,0,1,27,55.26V52.12a14.64,14.64,0,0,0,10,0v3.14A2,2,0,0,1,35.82,57.09Z\"/><ellipse cx=\"38\" cy=\"33.5\" rx=\"2\" ry=\"2.5\"/><path d=\"M31,39h2a1,1,0,0,0,0-2H31a1,1,0,0,0,0,2Z\"/><ellipse cx=\"26\" cy=\"33.5\" rx=\"2\" ry=\"2.5\"/><path d=\"M34.68,43.55a8.21,8.21,0,0,1-5.36,0,1,1,0,1,0-.64,1.9,10.3,10.3,0,0,0,6.64,0,1,1,0,0,0-.64-1.9Z\"/></g>",
-  "Michalis": "<rect width=\"96\" height=\"96\" rx=\"22\" fill=\"#000\"/><g transform=\"translate(16 8)\" fill=\"#FFFFFF\"><path d=\"M39,53.09V51.26A15,15,0,0,0,47,38v0c1.84-.19,3.25-2.29,3.25-5S48.84,28.22,47,28v0h4V27a4,4,0,0,0-4-4A12,12,0,0,0,35,11H29A12,12,0,0,0,17,23a4,4,0,0,0-4,4v1h4v0c-1.84.19-3.25,2.29-3.25,5s1.41,4.78,3.25,5v0a15,15,0,0,0,8,13.26v1.83c-8.71.88-14.51,5.1-16,11.69l2,.44c1.27-5.73,6.24-9.29,14-10.12v.16a4,4,0,0,0,2.32,3.64,10.51,10.51,0,0,0,9.36,0A4,4,0,0,0,39,55.26V55.1c7.78.83,12.75,4.39,14,10.12l2-.44C53.51,58.19,47.71,54,39,53.09ZM48.25,33c0,1.52-.62,2.69-1.25,3v-5.9C47.63,30.31,48.25,31.48,48.25,33Zm-32.5,0c0-1.52.62-2.69,1.25-2.95V36C16.37,35.69,15.75,34.52,15.75,33ZM19,38V28h3a11,11,0,0,0,10-6.42A11,11,0,0,0,42,28h3V38a13,13,0,0,1-26,0ZM35.82,57.09a8.43,8.43,0,0,1-7.64,0A2,2,0,0,1,27,55.26V52.12a14.64,14.64,0,0,0,10,0v3.14A2,2,0,0,1,35.82,57.09Z\"/><ellipse cx=\"38\" cy=\"33.5\" rx=\"2\" ry=\"2.5\"/><path d=\"M31,39h2a1,1,0,0,0,0-2H31a1,1,0,0,0,0,2Z\"/><ellipse cx=\"26\" cy=\"33.5\" rx=\"2\" ry=\"2.5\"/><path d=\"M41.67,42a1,1,0,0,0-2,0c0,.52-.3,1.47-1,1.18-2.19-1.47-4.92-3.31-6.73-1.2-1.8-2.11-4.53-.27-6.72,1.2-.68.29-1-.66-1-1.18a1,1,0,0,0-2,0c-.8,4.14,7.17,5.29,9.7,3C34.5,47.24,42.47,46.09,41.67,42Z\"/></g>",
-  "Nico": "<rect width=\"96\" height=\"96\" rx=\"22\" fill=\"#000\"/><g transform=\"translate(16 8)\" fill=\"#FFFFFF\"><path d=\"M39,53.09V51.26A15,15,0,0,0,47,38v0c1.84-.19,3.25-2.29,3.25-5S48.84,28.22,47,28v0h4V27a4,4,0,0,0-4-4A12,12,0,0,0,35,11H29A12,12,0,0,0,17,23a4,4,0,0,0-4,4v1h4v0c-1.84.19-3.25,2.29-3.25,5s1.41,4.78,3.25,5v0a15,15,0,0,0,8,13.26v1.83c-8.71.88-14.51,5.1-16,11.69l2,.44c1.27-5.73,6.24-9.29,14-10.12v.16a4,4,0,0,0,2.32,3.64,10.51,10.51,0,0,0,9.36,0A4,4,0,0,0,39,55.26V55.1c7.78.83,12.75,4.39,14,10.12l2-.44C53.51,58.19,47.71,54,39,53.09ZM48.25,33c0,1.52-.62,2.69-1.25,3v-5.9C47.63,30.31,48.25,31.48,48.25,33Zm-32.5,0c0-1.52.62-2.69,1.25-2.95V36C16.37,35.69,15.75,34.52,15.75,33ZM19,38V28h3a11,11,0,0,0,10-6.42A11,11,0,0,0,42,28h3V38a13,13,0,0,1-26,0ZM35.82,57.09a8.43,8.43,0,0,1-7.64,0A2,2,0,0,1,27,55.26V52.12a14.64,14.64,0,0,0,10,0v3.14A2,2,0,0,1,35.82,57.09Z\"/><path d=\"M29.94,34.61a3.84,3.84,0,0,1,4.12,0,4,4,0,1,0,.24-2.11,5.75,5.75,0,0,0-4.6,0,4,4,0,1,0,.24,2.11ZM38,32a2,2,0,1,1-2,2A2,2,0,0,1,38,32ZM26,36a2,2,0,1,1,2-2A2,2,0,0,1,26,36Z\"/><path d=\"M31,37a1,1,0,0,0,0,2h2a1,1,0,0,0,0-2Z\"/><path d=\"M37,43a1,1,0,0,0-1-1H28a1,1,0,0,0-1,1,5,5,0,0,0,10,0Zm-7.83,1h5.66a3,3,0,0,1-5.66,0Z\"/></g>"
-};
+const PROFILE_GATE_ICON_VERSION = "gate-png-v58";
 
-function buildPersonaGateSvg(user) {
-  const inner = PERSONA_GATE_MARKUP[user];
-  if (!inner) return "";
+function buildPersonaGateImg(user) {
+  const key = USER_NAMES.includes(user) ? user : PERSONA_FALLBACK_USER;
+  const src = PERSONA_ICON_SRC[key] ?? PERSONA_ICON_SRC[PERSONA_FALLBACK_USER];
   return (
-    '<svg class="persona-gate-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="56" height="56" role="img" aria-hidden="true" focusable="false" data-icon-source="' +
+    '<img class="persona-gate-icon" src="' +
+    src +
+    '" width="56" height="56" alt="" decoding="async" draggable="false" data-icon-source="' +
     PROFILE_GATE_ICON_VERSION +
-    '">' +
-    inner +
-    "</svg>"
+    '" />'
   );
 }
 
@@ -44,10 +39,10 @@ function mountProfileGateIcons() {
   const gate = document.getElementById("userGate");
   if (!gate) return;
   gate.querySelectorAll(".user-pick[data-user]").forEach((btn) => {
-    const u = btn.getAttribute("data-user");
+    const u = btn.getAttribute("data-user")?.trim();
     const frame = btn.querySelector(".persona-frame");
     if (!frame || !USER_NAMES.includes(u)) return;
-    const html = buildPersonaGateSvg(u);
+    const html = buildPersonaGateImg(u);
     if (html) frame.innerHTML = html;
   });
 }
