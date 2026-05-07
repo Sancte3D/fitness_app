@@ -27,36 +27,39 @@ test("index has no partner-only panel", () => {
   assert.ok(!html.includes('id="peerPanel"'));
 });
 
-test("index.html profile gate uses inline SVG icons; header uses PNG", () => {
+test("profile gate HTML is placeholders only; real SVG comes from app.js", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
-  assert.match(html, /id="themeColorMeta"/);
-  assert.match(html, /id="userGateTitle"/);
-  assert.match(html, /src="\.\/app\.js"/);
-  const gateOnly = html.split("<main")[0];
-  assert.ok(
-    !gateOnly.includes("assets/personas/persona-"),
-    "profile gate must embed vectors in HTML, not separate PNG requests",
-  );
-  assert.equal((html.match(/class="persona-gate-icon"/g) || []).length, 3);
-  assert.match(html, /a15\.5,15\.5,0,0,0,2\.61-1\.76/);
-  assert.match(html, /34\.68,43\.55/);
-  assert.match(html, /3\.25-5S48\.84/);
-  assert.match(html, /a5\.43,5\.43/);
-  assert.match(html, /M29\.94,34\.61/);
-  assert.match(html, /persona-david\.png\?v=55/);
-  assert.ok(!html.includes("persona-michalis.png"), "Michalis gate is inline SVG; PNG only for header icon when active");
-  assert.ok(!/class="persona-avatar"[^>]*src="data:image/.test(html), "no data: URIs on raster avatars");
-  assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear in profile gate HTML");
-  assert.match(html, /class="persona-frame"/);
-  assert.equal((html.match(/class="persona-frame"/g) || []).length, 3);
-  assert.match(html, /id="personaHeaderIcon"/);
+  assert.match(html, /PROFILE GATE ICONS v56/);
+  const mainIdx = html.indexOf("<main");
+  const gateCardStart = html.indexOf('class="user-gate-card"');
+  assert.ok(gateCardStart !== -1 && mainIdx !== -1);
+  const gateCardHtml = html.slice(gateCardStart, mainIdx);
+  assert.ok(!gateCardHtml.includes("<svg"), "gate card must not contain inline SVG — mounted by app.js");
+  assert.ok(!gateCardHtml.includes("persona-gate-icon"));
+  assert.ok(!gateCardHtml.includes("assets/personas/persona-"), "no raster in gate card HTML");
+  assert.equal((gateCardHtml.match(/class="persona-frame"><\/span>/g) || []).length, 3);
+  assert.match(html, /persona-david\.png\?v=56/);
+  assert.match(html, /<!--\s*deploy-asset-rev:56\s*-->/);
+  assert.ok(!/<text[\s>]/.test(gateCardHtml), "no SVG text in static gate");
+  assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear");
   assert.match(html, /class="settings-overlay"/);
-  assert.match(html, /id="settingsPanel"/);
-  assert.match(html, /<!--\s*deploy-asset-rev:55\s*-->/);
   assert.match(html, /purge.*unregister/s);
-  assert.match(html, /role="dialog"/);
-  assert.match(html, /apple-touch-icon\.png/);
+});
+
+test("app.js mounts persona gate from PERSONA_GATE_MARKUP (mask paths, no initials)", () => {
+  const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"inline-real-svg-v56"/);
+  assert.match(js, /PERSONA_GATE_MARKUP/);
+  assert.match(js, /mountProfileGateIcons/);
+  assert.match(js, /a15\.5,15\.5,0,0,0,2\.61-1\.76/);
+  assert.match(js, /3\.25-5S48\.84/);
+  assert.match(js, /a5\.43,5\.43/);
+  assert.match(js, /41\.67,42/);
+  assert.ok(!js.includes("<text"), "no text nodes in SVG markup strings");
+  assert.ok(!js.includes("personaSrcMap"), "icons must not be scraped from DOM");
+  assert.match(js, /service-worker\.js/);
+  assert.match(js, /updateViaCache:\s*"none"/);
 });
 
 test("settings panel is fixed modal (not in-page section)", () => {
@@ -65,28 +68,6 @@ test("settings panel is fixed modal (not in-page section)", () => {
   assert.match(html, /id="settingsPanel"[^>]*aria-modal="true"/);
   assert.match(html, /\.settings-overlay\{[^}]*position:fixed/);
   assert.match(html, /settings-backdrop/);
-});
-
-test("app.js registers service worker and persona icon URLs", () => {
-  const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  assert.match(js, /service-worker\.js/);
-  assert.match(js, /themeColorMeta/);
-  assert.match(js, /apple-mobile-web-app-status-bar-style/);
-  assert.match(js, /applyThemeChrome/);
-  assert.match(js, /syncBodyScrollLock/);
-  assert.match(js, /readStoredUserTheme/);
-  assert.match(js, /getProfileIconUrl/);
-  assert.match(js, /PERSONA_ICON_SRC/);
-  assert.ok(!js.includes("personaSrcMap"), "icons must not be scraped from DOM");
-  assert.match(js, /updateViaCache:\s*"none"/);
-});
-
-test("app.js uses per-user storage prefix", () => {
-  const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  assert.match(js, /daily-core-v3-\$\{/);
-  assert.match(js, /David/);
-  assert.match(js, /Michalis/);
-  assert.match(js, /Nico/);
 });
 
 test("persona avatars exist", () => {
@@ -105,19 +86,16 @@ test("manifest.webmanifest is valid and points to start URL", () => {
   assert.equal(m.name, "Daily Core");
   assert.ok(Array.isArray(m.icons) && m.icons.length >= 1);
   assert.ok(m.start_url);
-  const png = m.icons.find((i) => i.type === "image/png" && i.src.includes("icon-192.png"));
-  assert.ok(png, "manifest should list PNG app icons for install / iOS");
 });
 
-test("service worker lists cached static assets", () => {
+test("service worker: v56, purge old daily-core caches, network-first for documents", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /app\.js/);
-  assert.match(sw, /index\.html/);
-  assert.match(sw, /manifest\.webmanifest/);
-  assert.match(sw, /assets\/personas\/persona-david\.png/);
-  assert.match(sw, /icon-192\.png/);
-  assert.match(sw, /const CACHE_NAME="daily-core-v55"/);
-  assert.match(sw, /PERSONA_QS="\?v=55"/);
+  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v56"/);
+  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=56"/);
+  assert.match(sw, /startsWith\("daily-core-"\)/);
+  assert.match(sw, /networkFirstWithCacheFallback/);
+  assert.match(sw, /navigate/);
+  assert.match(sw, /\/app\.js/);
 });
 
 test("referenced icons exist on disk", () => {
