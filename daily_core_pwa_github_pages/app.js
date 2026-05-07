@@ -92,6 +92,40 @@ function storageKey(user) {
   return `daily-core-v3-${user}`;
 }
 
+function applyThemeChrome(theme) {
+  if (theme !== "dark" && theme !== "light") return;
+  document.documentElement.dataset.theme = theme;
+  const metaTheme = document.getElementById("themeColorMeta");
+  if (metaTheme) metaTheme.content = theme === "dark" ? "#000000" : "#F7F7F2";
+  const appleBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (appleBar) appleBar.content = theme === "dark" ? "black-translucent" : "default";
+}
+
+function readStoredUserTheme() {
+  try {
+    const u = localStorage.getItem(ACTIVE_USER_KEY);
+    if (!u || !USER_NAMES.includes(u)) return null;
+    const raw = localStorage.getItem(storageKey(u));
+    if (!raw) return null;
+    const t = JSON.parse(raw)?.settings?.theme;
+    return t === "dark" || t === "light" ? t : null;
+  } catch {
+    return null;
+  }
+}
+
+function syncUserGateAria() {
+  const g = el.userGate;
+  if (!g) return;
+  g.setAttribute("aria-hidden", g.classList.contains("open") ? "false" : "true");
+}
+
+function syncBodyScrollLock() {
+  const gate = el.userGate?.classList.contains("open");
+  const settings = el.settingsPanel?.classList.contains("open");
+  document.body.style.overflow = gate || settings ? "hidden" : "";
+}
+
 function getSyncCfg() {
   const c = window.DAILY_CORE_SYNC;
   if (!c?.supabaseUrl || !c?.supabaseAnonKey) return null;
@@ -404,11 +438,7 @@ function bindSettingsForm() {
 function render() {
   if (!state || !activeUser) return;
   ensure();
-  document.documentElement.dataset.theme = state.settings.theme;
-  const metaTheme = document.getElementById("themeColorMeta");
-  if (metaTheme) metaTheme.content = state.settings.theme === "dark" ? "#000000" : "#F7F7F2";
-  const appleBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-  if (appleBar) appleBar.content = state.settings.theme === "dark" ? "black-translucent" : "default";
+  applyThemeChrome(state.settings.theme);
   const p = pct(),
     s = cur(),
     rest = isRest();
@@ -588,7 +618,7 @@ function setSettingsOpen(on) {
   if (!el.settingsPanel) return;
   el.settingsPanel.classList.toggle("open", on);
   el.settingsPanel.setAttribute("aria-hidden", on ? "false" : "true");
-  document.body.style.overflow = on ? "hidden" : "";
+  syncBodyScrollLock();
 }
 
 function toast(t) {
@@ -640,6 +670,8 @@ function bindEvents() {
   el.userSwitchBtn.onclick = () => {
     if (!confirm("Anderes Profil wählen? Der aktuelle Stand ist lokal (und bei Cloud aktiv) bereits gesichert.")) return;
     $("userGate").classList.add("open");
+    syncUserGateAria();
+    syncBodyScrollLock();
   };
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && el.settingsPanel.classList.contains("open")) setSettingsOpen(false);
@@ -655,6 +687,8 @@ async function chooseUser(u) {
   activeUser = u;
   localStorage.setItem(ACTIVE_USER_KEY, u);
   $("userGate").classList.remove("open");
+  syncUserGateAria();
+  syncBodyScrollLock();
   el.userEyebrow.textContent = u;
   updatePersonaHeaderIcon();
   bindEvents();
@@ -673,6 +707,8 @@ function boot() {
   ids.forEach((id) => {
     el[id] = $(id);
   });
+  const earlyTheme = readStoredUserTheme();
+  if (earlyTheme) applyThemeChrome(earlyTheme);
   wireUserGate();
   const stored = localStorage.getItem(ACTIVE_USER_KEY);
   if (stored && USER_NAMES.includes(stored)) {
@@ -680,11 +716,16 @@ function boot() {
     activeUser = stored;
     el.userEyebrow.textContent = activeUser;
     updatePersonaHeaderIcon();
+    syncUserGateAria();
+    syncBodyScrollLock();
     bindEvents();
     loadInitialState().then(() => {
       render();
       if (!timer) timer = setInterval(tick, 1000);
     });
+  } else {
+    syncUserGateAria();
+    syncBodyScrollLock();
   }
 }
 

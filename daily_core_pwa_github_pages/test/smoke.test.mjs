@@ -18,6 +18,8 @@ test("index uses Electric Kiwi theme tokens", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /--kiwi-500:#CCFF00/);
   assert.match(html, /--neutral-050:#F7F7F2/);
+  assert.match(html, /--color-bg:/);
+  assert.match(html, /--overlay-scrim:/);
 });
 
 test("index has no partner-only panel", () => {
@@ -37,6 +39,7 @@ test("index.html uses data-URI persona avatars (img, no file path)", () => {
   assert.match(html, /id="personaHeaderIcon"/);
   assert.match(html, /class="settings-overlay"/);
   assert.match(html, /id="settingsPanel"/);
+  assert.match(html, /aria-controls="userGate"/);
   assert.match(html, /role="dialog"/);
 });
 
@@ -45,6 +48,9 @@ test("app.js registers service worker and persona src map", () => {
   assert.match(js, /service-worker\.js/);
   assert.match(js, /themeColorMeta/);
   assert.match(js, /apple-mobile-web-app-status-bar-style/);
+  assert.match(js, /applyThemeChrome/);
+  assert.match(js, /syncBodyScrollLock/);
+  assert.match(js, /readStoredUserTheme/);
   assert.match(js, /headerPersonaSrc/);
 });
 
