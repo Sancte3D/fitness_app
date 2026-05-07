@@ -25,18 +25,22 @@ test("index has no partner-only panel", () => {
   assert.ok(!html.includes('id="peerPanel"'));
 });
 
-test("index.html loads app, profile gate, and Nico persona", () => {
+test("index.html loads app, profile gate, three inline avatars, header host", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
   assert.match(html, /src="\.\/app\.js"/);
   assert.match(html, /class="app"/);
   assert.match(html, /data-user="Nico"/);
-  assert.match(html, /persona-nico\.svg/);
+  assert.ok(!html.includes("persona-david.svg"), "avatars should be inline, not img src");
+  assert.equal((html.match(/class="persona-avatar"/g) || []).length, 3);
+  assert.match(html, /id="personaHeaderIcon"/);
 });
 
-test("app.js registers service worker", () => {
+test("app.js registers service worker and inline persona markup", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
   assert.match(js, /service-worker\.js/);
+  assert.match(js, /PERSONA_SVG_INNER/);
+  assert.match(js, /headerPersonaSvgMarkup/);
 });
 
 test("app.js uses per-user storage prefix", () => {
@@ -63,8 +67,7 @@ test("manifest.webmanifest is valid and points to start URL", () => {
 
 test("service worker lists cached static assets", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /persona-david\.svg/);
-  assert.match(sw, /persona-nico\.svg/);
+  assert.match(sw, /app\.js/);
   assert.match(sw, /index\.html/);
   assert.match(sw, /manifest\.webmanifest/);
 });
