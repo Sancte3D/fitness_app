@@ -9,7 +9,7 @@ const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
 const PERSONA_FALLBACK_USER = "David";
 
-const PERSONA_ASSET_QS = "?v=58";
+const PERSONA_ASSET_QS = "?v=59";
 
 /** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
@@ -17,7 +17,7 @@ const PERSONA_ICON_SRC = {
   Michalis: `./assets/personas/persona-michalis.png${PERSONA_ASSET_QS}`,
   Nico: `./assets/personas/persona-nico.png${PERSONA_ASSET_QS}`,
 };
-const PROFILE_GATE_ICON_VERSION = "gate-png-v58";
+const PROFILE_GATE_ICON_VERSION = "gate-png-v59";
 
 function buildPersonaGateImg(user) {
   const key = USER_NAMES.includes(user) ? user : PERSONA_FALLBACK_USER;

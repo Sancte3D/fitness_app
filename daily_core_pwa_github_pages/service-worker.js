@@ -1,5 +1,5 @@
-const CACHE_NAME = "daily-core-v58";
-const PERSONA_QS = "?v=58";
+const CACHE_NAME = "daily-core-v59";
+const PERSONA_QS = "?v=59";
 const ASSETS = [
   "./",
   "./index.html",

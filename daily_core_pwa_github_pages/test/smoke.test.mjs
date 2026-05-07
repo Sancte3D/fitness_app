@@ -30,7 +30,7 @@ test("index has no partner-only panel", () => {
 test("profile gate HTML is placeholders only; gate PNGs mounted by app.js", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
-  assert.match(html, /PROFILE GATE ICONS v58/);
+  assert.match(html, /PROFILE GATE ICONS v59/);
   const mainIdx = html.indexOf("<main");
   const gateCardStart = html.indexOf('class="user-gate-card"');
   assert.ok(gateCardStart !== -1 && mainIdx !== -1);
@@ -39,8 +39,8 @@ test("profile gate HTML is placeholders only; gate PNGs mounted by app.js", () =
   assert.ok(!gateCardHtml.includes("persona-gate-icon"));
   assert.ok(!gateCardHtml.includes("assets/personas/persona-"), "no raster in gate card HTML");
   assert.equal((gateCardHtml.match(/class="persona-frame"><\/span>/g) || []).length, 3);
-  assert.match(html, /persona-david\.png\?v=58/);
-  assert.match(html, /<!--\s*deploy-asset-rev:58\s*-->/);
+  assert.match(html, /persona-david\.png\?v=59/);
+  assert.match(html, /<!--\s*deploy-asset-rev:59\s*-->/);
   assert.ok(!/<text[\s>]/.test(gateCardHtml), "no SVG text in static gate");
   assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear");
   assert.match(html, /class="settings-overlay"/);
@@ -49,7 +49,7 @@ test("profile gate HTML is placeholders only; gate PNGs mounted by app.js", () =
 
 test("app.js mounts persona gate as PNG imgs (PERSONA_ICON_SRC, no inline SVG strings)", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"gate-png-v58"/);
+  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"gate-png-v59"/);
   assert.match(js, /buildPersonaGateImg/);
   assert.match(js, /mountProfileGateIcons/);
   assert.match(js, /persona-gate-icon/);
@@ -79,6 +79,12 @@ test("persona avatars exist", () => {
   }
 });
 
+test("persona-nico.svg uses original 64×80 mask paths (hair detail)", () => {
+  const svg = fs.readFileSync(path.join(root, "assets/personas/persona-nico.svg"), "utf8");
+  assert.match(svg, /a5\.43,5\.43,0,0,0-1\.94-4\.47/);
+  assert.match(svg, /M29\.94,34\.61/);
+});
+
 test("manifest.webmanifest is valid and points to start URL", () => {
   const raw = fs.readFileSync(path.join(root, "manifest.webmanifest"), "utf8");
   const m = JSON.parse(raw);
@@ -87,10 +93,10 @@ test("manifest.webmanifest is valid and points to start URL", () => {
   assert.ok(m.start_url);
 });
 
-test("service worker: v58, purge old daily-core caches, network-first for documents", () => {
+test("service worker: v59, purge old daily-core caches, network-first for documents", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v58"/);
-  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=58"/);
+  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v59"/);
+  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=59"/);
   assert.match(sw, /startsWith\("daily-core-"\)/);
   assert.match(sw, /networkFirstWithCacheFallback/);
   assert.match(sw, /navigate/);
