@@ -54,10 +54,9 @@ test("app.js registers service worker and persona icon URLs", () => {
   assert.match(js, /applyThemeChrome/);
   assert.match(js, /syncBodyScrollLock/);
   assert.match(js, /readStoredUserTheme/);
-  assert.match(js, /headerPersonaSrc/);
+  assert.match(js, /getProfileIconUrl/);
   assert.match(js, /PERSONA_ICON_SRC/);
-  assert.match(js, /personaIconUrl/);
-  assert.ok(!js.includes("personaSrcMap"), "no DOM-scraped persona map; use PERSONA_ICON_SRC");
+  assert.ok(!js.includes("personaSrcMap"), "icons must not be scraped from DOM");
 });
 
 test("app.js uses per-user storage prefix", () => {

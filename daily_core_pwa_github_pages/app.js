@@ -1,30 +1,29 @@
 "use strict";
 
 /**
- * Static PWA (no React/Vite). Profile icons are real files under ./assets/personas/.
- * Visible “letter” shapes are vector art inside those SVGs, not initials/charAt fallbacks.
+ * Static PWA (no React/Vite). Profile icons are brand assets in ./assets/personas/.
+ * Paths are defined ONLY in PERSONA_ICON_SRC below — not scraped from the DOM.
+ * Shapes in the SVG files are vector artwork, not initials from JavaScript.
  */
 const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
+const PERSONA_FALLBACK_USER = "David";
 
-/** Relative to index.html (GitHub Pages deploy root = this folder). */
+/** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
   David: "./assets/personas/persona-david.svg",
   Michalis: "./assets/personas/persona-michalis.svg",
   Nico: "./assets/personas/persona-nico.svg",
 };
 
-function personaIconUrl(user) {
-  const rel = PERSONA_ICON_SRC[user] || PERSONA_ICON_SRC.David;
+function getProfileIconUrl(user) {
+  const key = USER_NAMES.includes(user) ? user : PERSONA_FALLBACK_USER;
+  const rel = PERSONA_ICON_SRC[key] ?? PERSONA_ICON_SRC[PERSONA_FALLBACK_USER];
   try {
     return new URL(rel, document.baseURI || window.location.href).href;
   } catch {
     return rel;
   }
-}
-
-function headerPersonaSrc(user) {
-  return personaIconUrl(user || "David");
 }
 
 const defaults = {
@@ -92,7 +91,10 @@ const el = {};
 function updatePersonaHeaderIcon() {
   const img = $("personaHeaderIcon");
   if (!img) return;
-  img.src = headerPersonaSrc(activeUser || "David");
+  const u = activeUser || PERSONA_FALLBACK_USER;
+  img.src = getProfileIconUrl(u);
+  img.alt = `${u} Profil-Icon`;
+  img.draggable = false;
 }
 
 function storageKey(user) {

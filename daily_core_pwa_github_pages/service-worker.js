@@ -1,4 +1,4 @@
-const CACHE_NAME="daily-core-v27";
+const CACHE_NAME="daily-core-v28";
 const ASSETS=["./","./index.html","./app.js","./sync-config.js","./manifest.webmanifest","./assets/personas/persona-david.svg","./assets/personas/persona-michalis.svg","./assets/personas/persona-nico.svg","./icon-192.png","./icon-512.png","./apple-touch-icon.png","./icon-192.svg","./icon-512.svg"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));self.clients.claim()});
