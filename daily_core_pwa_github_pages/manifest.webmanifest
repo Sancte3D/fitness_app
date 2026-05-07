@@ -1,7 +1,9 @@
 {
+  "id": "./index.html",
   "name": "Daily Core",
   "short_name": "Daily Core",
-  "description": "Private daily push-up and plank training tracker.",
+  "lang": "de",
+  "description": "Tägliches Push-up- und Plank-Training (PWA). Lokale Profile; optional Supabase-Sync.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
