@@ -9,11 +9,13 @@ const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
 const PERSONA_FALLBACK_USER = "David";
 
+const PERSONA_ASSET_QS = "?v=51";
+
 /** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
-  David: "./assets/personas/persona-david.png",
-  Michalis: "./assets/personas/persona-michalis.png",
-  Nico: "./assets/personas/persona-nico.png",
+  David: `./assets/personas/persona-david.png${PERSONA_ASSET_QS}`,
+  Michalis: `./assets/personas/persona-michalis.png${PERSONA_ASSET_QS}`,
+  Nico: `./assets/personas/persona-nico.png${PERSONA_ASSET_QS}`,
 };
 
 function getProfileIconUrl(user) {
@@ -741,5 +743,15 @@ function boot() {
 boot();
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./service-worker.js", { updateViaCache: "none" })
+      .then((reg) => {
+        reg.update().catch(() => {});
+        document.addEventListener("visibilitychange", () => {
+          if (!document.hidden) reg.update().catch(() => {});
+        });
+      })
+      .catch(() => {});
+  });
 }

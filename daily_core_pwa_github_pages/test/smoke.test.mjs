@@ -33,17 +33,18 @@ test("index.html references persona PNG avatars", () => {
   assert.match(html, /id="themeColorMeta"/);
   assert.match(html, /id="userGateTitle"/);
   assert.match(html, /src="\.\/app\.js"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-david\.png"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-michalis\.png"/);
-  assert.match(html, /src="\.\/assets\/personas\/persona-nico\.png"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-david\.png\?v=51"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-michalis\.png\?v=51"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-nico\.png\?v=51"/);
   assert.ok(!/class="persona-avatar"[^>]*src="data:image/.test(html), "persona avatars must be file URLs, not data: URIs");
-  assert.ok(!html.includes("Eigenes Konto"), "Eigenes Konto line remains removed from profile gate");
+  assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear in profile gate HTML");
   assert.match(html, /class="persona-frame"/);
   assert.equal((html.match(/class="persona-frame"/g) || []).length, 3);
   assert.match(html, /id="personaHeaderIcon"/);
   assert.match(html, /class="settings-overlay"/);
   assert.match(html, /id="settingsPanel"/);
-  assert.match(html, /aria-controls="userGate"/);
+  assert.match(html, /<!--\s*deploy-asset-rev:51\s*-->/);
+  assert.match(html, /purge.*unregister/s);
   assert.match(html, /role="dialog"/);
   assert.match(html, /apple-touch-icon\.png/);
 });
@@ -67,6 +68,7 @@ test("app.js registers service worker and persona icon URLs", () => {
   assert.match(js, /getProfileIconUrl/);
   assert.match(js, /PERSONA_ICON_SRC/);
   assert.ok(!js.includes("personaSrcMap"), "icons must not be scraped from DOM");
+  assert.match(js, /updateViaCache:\s*"none"/);
 });
 
 test("app.js uses per-user storage prefix", () => {
@@ -104,7 +106,8 @@ test("service worker lists cached static assets", () => {
   assert.match(sw, /manifest\.webmanifest/);
   assert.match(sw, /assets\/personas\/persona-david\.png/);
   assert.match(sw, /icon-192\.png/);
-  assert.match(sw, /const CACHE_NAME="daily-core-v\d+"/);
+  assert.match(sw, /const CACHE_NAME="daily-core-v51"/);
+  assert.match(sw, /PERSONA_QS="\?v=51"/);
 });
 
 test("referenced icons exist on disk", () => {
