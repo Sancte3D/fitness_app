@@ -1,60 +1,102 @@
 "use strict";
 
 /**
- * Static PWA (no React/Vite). Profile gate (“Wer trainiert?”) uses the same PNGs as
- * the header (PERSONA_ICON_SRC), mounted by mountProfileGateIcons — avoids WebKit
- * inline-SVG quirks where only some mask paths painted. SVG sources stay in assets/.
+ * One-time coach onboarding: display name → deterministic persona (David/Michalis/Nico PNG).
+ * Training data in DATA_STORAGE_KEY; Supabase username = slug(displayName).
  */
-const USER_NAMES = ["David", "Michalis", "Nico"];
-const ACTIVE_USER_KEY = "daily-core-active-user";
-const PERSONA_FALLBACK_USER = "David";
+const PERSONA_IDS = ["David", "Michalis", "Nico"];
+const PERSONA_FALLBACK = "David";
+const PROFILE_KEY = "daily-core-profile-v1";
+const LEGACY_ACTIVE_KEY = "daily-core-active-user";
+const DATA_STORAGE_KEY = "daily-core-v3-data";
 
-const PERSONA_ASSET_QS = "?v=60";
+const PERSONA_ASSET_QS = "?v=62";
 
-/** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
   David: `./assets/personas/persona-david.png${PERSONA_ASSET_QS}`,
   Michalis: `./assets/personas/persona-michalis.png${PERSONA_ASSET_QS}`,
   Nico: `./assets/personas/persona-nico.png${PERSONA_ASSET_QS}`,
 };
-const PROFILE_GATE_ICON_VERSION = "gate-png-v60";
 
-function buildPersonaGateImg(user) {
-  const key = USER_NAMES.includes(user) ? user : PERSONA_FALLBACK_USER;
-  const src = PERSONA_ICON_SRC[key] ?? PERSONA_ICON_SRC[PERSONA_FALLBACK_USER];
-  return (
-    '<img class="persona-gate-icon" src="' +
-    src +
-    '" width="56" height="56" alt="" decoding="async" draggable="false" data-icon-source="' +
-    PROFILE_GATE_ICON_VERSION +
-    '" />'
-  );
-}
+let activeUser = null;
+/** @type {string|null} */
+let userDisplayName = null;
+/** @type {string|null} */
+let userPersona = null;
 
-function mountProfileGateIcons() {
-  if (!window.__PROFILE_GATE_ICONS_LOGGED) {
-    window.__PROFILE_GATE_ICONS_LOGGED = true;
-    console.log("profile gate icons source:", PROFILE_GATE_ICON_VERSION);
-  }
-  const gate = document.getElementById("userGate");
-  if (!gate) return;
-  gate.querySelectorAll(".user-pick[data-user]").forEach((btn) => {
-    const u = btn.getAttribute("data-user")?.trim();
-    const frame = btn.querySelector(".persona-frame");
-    if (!frame || !USER_NAMES.includes(u)) return;
-    const html = buildPersonaGateImg(u);
-    if (html) frame.innerHTML = html;
-  });
-}
-
-
-function getProfileIconUrl(user) {
-  const key = USER_NAMES.includes(user) ? user : PERSONA_FALLBACK_USER;
-  const rel = PERSONA_ICON_SRC[key] ?? PERSONA_ICON_SRC[PERSONA_FALLBACK_USER];
+function getProfileIconUrl(personaId) {
+  const key = PERSONA_IDS.includes(personaId) ? personaId : PERSONA_FALLBACK;
+  const rel = PERSONA_ICON_SRC[key] ?? PERSONA_ICON_SRC[PERSONA_FALLBACK];
   try {
     return new URL(rel, document.baseURI || window.location.href).href;
   } catch {
     return rel;
+  }
+}
+
+function slugForCloud(name) {
+  const s = String(name || "user")
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 48);
+  return s || "user";
+}
+
+function personaFromDisplayName(name) {
+  const s = name.trim().toLowerCase();
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return PERSONA_IDS[Math.abs(h) % 3];
+}
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p.displayName && p.persona && PERSONA_IDS.includes(p.persona)) return p;
+    }
+    const legacy = localStorage.getItem(LEGACY_ACTIVE_KEY);
+    if (legacy && PERSONA_IDS.includes(legacy)) {
+      const p = { displayName: legacy, persona: legacy, v: 1 };
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+      localStorage.removeItem(LEGACY_ACTIVE_KEY);
+      return p;
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function saveProfile(p) {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+}
+
+function applyProfileToRuntime(p) {
+  userDisplayName = p.displayName;
+  userPersona = p.persona;
+  activeUser = slugForCloud(userDisplayName);
+}
+
+function migrateLegacyTrainingBlob() {
+  if (localStorage.getItem(DATA_STORAGE_KEY)) return;
+  const legacySingle = localStorage.getItem("daily-core-v3");
+  if (legacySingle) {
+    localStorage.setItem(DATA_STORAGE_KEY, legacySingle);
+    localStorage.removeItem("daily-core-v3");
+    return;
+  }
+  for (const id of PERSONA_IDS) {
+    const raw = localStorage.getItem(`daily-core-v3-${id}`);
+    if (raw) {
+      localStorage.setItem(DATA_STORAGE_KEY, raw);
+      return;
+    }
   }
 }
 
@@ -69,7 +111,6 @@ const defaults = {
   theme: "light",
 };
 
-let activeUser = null;
 let state = null;
 let timer = null;
 let pushTimer = null;
@@ -113,19 +154,24 @@ const ids = [
   "importBtn",
   "importFile",
   "toast",
-  "userGate",
+  "coachOnboard",
+  "onboardNameInput",
+  "onboardContinueBtn",
+  "onboardStepReveal",
+  "onboardingPersonaImg",
+  "onboardRevealMsg",
+  "onboardStartBtn",
   "userEyebrow",
-  "userSwitchBtn",
   "settingsStorageNote",
+  "resetProfileBtn",
 ];
 const el = {};
 
 function updatePersonaHeaderIcon() {
   const img = $("personaHeaderIcon");
-  if (!img) return;
-  const u = activeUser || PERSONA_FALLBACK_USER;
-  img.src = getProfileIconUrl(u);
-  img.alt = `${u} Profil-Icon`;
+  if (!img || !userPersona) return;
+  img.src = getProfileIconUrl(userPersona);
+  img.alt = `${userDisplayName || "You"} · coach icon`;
   img.draggable = false;
 }
 
@@ -141,8 +187,8 @@ function applyDisplayModeClass() {
   }
 }
 
-function storageKey(user) {
-  return `daily-core-v3-${user}`;
+function storageKey() {
+  return DATA_STORAGE_KEY;
 }
 
 function applyThemeChrome(theme) {
@@ -156,9 +202,7 @@ function applyThemeChrome(theme) {
 
 function readStoredUserTheme() {
   try {
-    const u = localStorage.getItem(ACTIVE_USER_KEY);
-    if (!u || !USER_NAMES.includes(u)) return null;
-    const raw = localStorage.getItem(storageKey(u));
+    const raw = localStorage.getItem(DATA_STORAGE_KEY);
     if (!raw) return null;
     const t = JSON.parse(raw)?.settings?.theme;
     return t === "dark" || t === "light" ? t : null;
@@ -167,16 +211,16 @@ function readStoredUserTheme() {
   }
 }
 
-function syncUserGateAria() {
-  const g = el.userGate;
+function syncCoachOnboardAria() {
+  const g = el.coachOnboard;
   if (!g) return;
   g.setAttribute("aria-hidden", g.classList.contains("open") ? "false" : "true");
 }
 
 function syncBodyScrollLock() {
-  const gate = el.userGate?.classList.contains("open");
+  const onboard = el.coachOnboard?.classList.contains("open");
   const settings = el.settingsPanel?.classList.contains("open");
-  document.body.style.overflow = gate || settings ? "hidden" : "";
+  document.body.style.overflow = onboard || settings ? "hidden" : "";
 }
 
 function getSyncCfg() {
@@ -218,15 +262,10 @@ function norm(x) {
 
 function loadFromDisk() {
   try {
-    const k = storageKey(activeUser);
-    let raw = localStorage.getItem(k);
+    let raw = localStorage.getItem(DATA_STORAGE_KEY);
     if (!raw) {
-      const legacy = localStorage.getItem("daily-core-v3");
-      if (legacy) {
-        localStorage.setItem(k, legacy);
-        localStorage.removeItem("daily-core-v3");
-        raw = legacy;
-      }
+      migrateLegacyTrainingBlob();
+      raw = localStorage.getItem(DATA_STORAGE_KEY);
     }
     return raw ? norm(JSON.parse(raw)) : fresh();
   } catch {
@@ -306,7 +345,7 @@ function queueSync() {
 
 function persistLocal() {
   if (!activeUser) return;
-  localStorage.setItem(storageKey(activeUser), JSON.stringify(state));
+  localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(state));
 }
 
 async function loadInitialState() {
@@ -548,7 +587,9 @@ function render() {
 
   renderSteps();
   renderCal();
-  el.settingsStorageNote.textContent = getSyncCfg() ? "Profil + Supabase" : "nur lokal · Profil";
+  el.settingsStorageNote.textContent = getSyncCfg()
+    ? `${userDisplayName || ""} · Supabase`
+    : `${userDisplayName || ""} · nur lokal`;
   bindSettingsForm();
   persistLocal();
 }
@@ -646,7 +687,7 @@ function backup() {
     url = URL.createObjectURL(blob),
     a = document.createElement("a");
   a.href = url;
-  a.download = `daily-core-backup-${activeUser}-${key()}.json`;
+  a.download = `daily-core-backup-${activeUser || "user"}-${key()}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -720,12 +761,19 @@ function bindEvents() {
   el.exportBtn.onclick = backup;
   el.importBtn.onclick = () => el.importFile.click();
   el.importFile.onchange = (e) => importFile(e.target.files[0]);
-  el.userSwitchBtn.onclick = () => {
-    if (!confirm("Anderes Profil wählen? Der aktuelle Stand ist lokal (und bei Cloud aktiv) bereits gesichert.")) return;
-    $("userGate").classList.add("open");
-    mountProfileGateIcons();
-    syncUserGateAria();
-    syncBodyScrollLock();
+  el.resetProfileBtn.onclick = () => {
+    if (!confirm("Profil neu starten? Dein Name, Avatar und alle Trainingsdaten auf diesem Gerät werden gelöscht.")) return;
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(DATA_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_ACTIVE_KEY);
+    PERSONA_IDS.forEach((id) => localStorage.removeItem(`daily-core-v3-${id}`));
+    localStorage.removeItem("daily-core-v3");
+    try {
+      sessionStorage.clear();
+    } catch {
+      /* ignore */
+    }
+    location.reload();
   };
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && el.settingsPanel.classList.contains("open")) setSettingsOpen(false);
@@ -736,24 +784,64 @@ function bindEvents() {
   window.addEventListener("beforeunload", persistLocal);
 }
 
-async function chooseUser(u) {
-  if (!USER_NAMES.includes(u)) return;
-  activeUser = u;
-  localStorage.setItem(ACTIVE_USER_KEY, u);
-  $("userGate").classList.remove("open");
-  syncUserGateAria();
-  syncBodyScrollLock();
-  el.userEyebrow.textContent = u;
-  updatePersonaHeaderIcon();
-  bindEvents();
-  await loadInitialState();
-  render();
-  if (!timer) timer = setInterval(tick, 1000);
+function wireCoachOnboard() {
+  const input = el.onboardNameInput;
+  const cont = $("onboardStepName");
+  const btn = el.onboardContinueBtn;
+  const startBtn = el.onboardStartBtn;
+  const img = el.onboardingPersonaImg;
+  if (!input || !btn || !startBtn || !img || !el.onboardStepReveal) return;
+
+  function submitName() {
+    const name = String(input.value || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    if (name.length < 1) {
+      toast("Please enter your name");
+      input.focus();
+      return;
+    }
+    if (name.length > 40) {
+      toast("Name is too long");
+      return;
+    }
+    const persona = personaFromDisplayName(name);
+    const p = { displayName: name, persona, v: 1 };
+    saveProfile(p);
+    applyProfileToRuntime(p);
+    migrateLegacyTrainingBlob();
+
+    if (cont) cont.hidden = true;
+    el.onboardStepReveal.hidden = false;
+
+    img.src = getProfileIconUrl(persona);
+    img.classList.remove("onboard-animate");
+    void img.offsetWidth;
+    img.classList.add("onboard-animate");
+    el.onboardRevealMsg.textContent = `Nice to meet you, ${name}. Here's your coach.`;
+    startBtn.focus();
+  }
+
+  btn.onclick = submitName;
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitName();
+    }
+  });
+  startBtn.onclick = () => finishOnboardingFirstRun();
 }
 
-function wireUserGate() {
-  document.querySelectorAll("#userGate [data-user]").forEach((b) => {
-    b.addEventListener("click", () => chooseUser(b.getAttribute("data-user")));
+function finishOnboardingFirstRun() {
+  el.coachOnboard.classList.remove("open");
+  syncCoachOnboardAria();
+  syncBodyScrollLock();
+  if (userDisplayName) el.userEyebrow.textContent = `Hi, ${userDisplayName}!`;
+  updatePersonaHeaderIcon();
+  bindEvents();
+  loadInitialState().then(() => {
+    render();
+    if (!timer) timer = setInterval(tick, 1000);
   });
 }
 
@@ -762,17 +850,19 @@ function boot() {
     el[id] = $(id);
   });
   applyDisplayModeClass();
-  mountProfileGateIcons();
+  migrateLegacyTrainingBlob();
+  wireCoachOnboard();
+
   const earlyTheme = readStoredUserTheme();
   if (earlyTheme) applyThemeChrome(earlyTheme);
-  wireUserGate();
-  const stored = localStorage.getItem(ACTIVE_USER_KEY);
-  if (stored && USER_NAMES.includes(stored)) {
-    $("userGate").classList.remove("open");
-    activeUser = stored;
-    el.userEyebrow.textContent = activeUser;
+
+  const profile = loadProfile();
+  if (profile) {
+    applyProfileToRuntime(profile);
+    el.coachOnboard.classList.remove("open");
+    el.userEyebrow.textContent = `Welcome back, ${userDisplayName}!`;
     updatePersonaHeaderIcon();
-    syncUserGateAria();
+    syncCoachOnboardAria();
     syncBodyScrollLock();
     bindEvents();
     loadInitialState().then(() => {
@@ -780,8 +870,10 @@ function boot() {
       if (!timer) timer = setInterval(tick, 1000);
     });
   } else {
-    syncUserGateAria();
+    el.coachOnboard.classList.add("open");
+    syncCoachOnboardAria();
     syncBodyScrollLock();
+    setTimeout(() => el.onboardNameInput?.focus(), 150);
   }
 }
 

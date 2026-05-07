@@ -1,8 +1,14 @@
 # Daily Core
 
-Progressive Web App für **tägliches Push-up- und Plank-Training** mit Profilen **David**, **Michalis** und **Nico**. Daten pro Profil in `localStorage`; optional **Supabase**-Sync.
+Progressive Web App für **tägliches Push-up- und Plank-Training**. Beim **ersten Start** fragt ein Coach-Dialog nach dem Namen; daraus wird **einmalig** eine von drei Masken-Personas (**David / Michalis / Nico**, PNG aus `assets/personas/`) per Hash zugewiesen. Anschließend: **„Welcome back, {Name}!“** bei jedem erneuten Öffnen. Trainingsdaten in einem gemeinsamen `localStorage`-Bucket; optional **Supabase**-Sync mit **URL-Slug aus dem Namen**.
 
 **Theme:** Electric Kiwi (Akzent `#CCFF00`, Hintergrund `#F7F7F2`, Typo *Neue Haas Unica* wenn WOFF2 unter `fonts/` liegen).
+
+## Einmaliges Onboarding
+
+- Overlay: **„Hi! I'm your daily coach. What's your name?“** → Name → **Animation**, Persona-Icon erscheint → **„Let's go“**.
+- Speicherung unter `daily-core-profile-v1` (`displayName` + `persona`). Trainings-JSON unter `daily-core-v3-data`.
+- **Setup → „Profil neu“** löscht Profil + Daten auf dem Gerät und startet das Onboarding erneut (nach Reload).
 
 ## iPhone: Zum Home-Bildschirm
 
@@ -19,14 +25,14 @@ Progressive Web App für **tägliches Push-up- und Plank-Training** mit Profilen
 - **Touch:** `touch-action: manipulation` auf Haupt-Controls (weniger Doppeltipp-Zoom-Verzögerung); Modals/Gate mit `-webkit-overflow-scrolling: touch`.
 - **Volle Höhe:** `min-height: 100dvh` und `-webkit-fill-available` gegen Safari-Toolbar-Sprünge.
 - **Animationen:** Leichte `transform`-Rückmeldung auf `:active`; bei **`prefers-reduced-motion: reduce`** werden Transitions und Druck-Scale deaktiviert.
-- **Profil-Gate:** Persona-Icons als **PNG** (`assets/personas/persona-*.png`), Quellen als `.svg` im gleichen Ordner.
+- **Persona-Avatar:** PNG im Header (kein Profilwechsel-Button); Zuweisung nur über Namen-Hash beim Onboarding.
 
 ## Cloud-Sync (optional)
 
 1. Projekt auf [Supabase](https://supabase.com) anlegen.
 2. SQL aus `../supabase/schema.sql` im SQL Editor ausführen.
 3. In `sync-config.js` **Project URL** und **anon public** Key eintragen (`Settings` → `API`).
-4. App deployen oder lokal öffnen; Profil wählen. Ohne gültige Konfiguration bleibt alles **nur lokal**, getrennt nach Profil.
+4. App deployen oder lokal öffnen; nach Onboarding sync der Zeile **`username` = Slug aus dem Anzeigenamen**. Ohne Konfiguration bleibt alles **nur lokal**.
 
 ## GitHub Pages
 

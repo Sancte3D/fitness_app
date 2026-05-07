@@ -27,38 +27,34 @@ test("index has no partner-only panel", () => {
   assert.ok(!html.includes('id="peerPanel"'));
 });
 
-test("profile gate HTML is placeholders only; gate PNGs mounted by app.js", () => {
+test("coach onboarding overlay (no legacy three-tile profile gate)", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(html, /id="userGate"/);
-  assert.match(html, /PROFILE GATE ICONS v60/);
-  const mainIdx = html.indexOf("<main");
-  const gateCardStart = html.indexOf('class="user-gate-card"');
-  assert.ok(gateCardStart !== -1 && mainIdx !== -1);
-  const gateCardHtml = html.slice(gateCardStart, mainIdx);
-  assert.ok(!gateCardHtml.includes("<svg"), "gate card must not contain inline SVG — mounted by app.js");
-  assert.ok(!gateCardHtml.includes("persona-gate-icon"));
-  assert.ok(!gateCardHtml.includes("assets/personas/persona-"), "no raster in gate card HTML");
-  assert.equal((gateCardHtml.match(/class="persona-frame"><\/span>/g) || []).length, 3);
-  assert.match(html, /persona-david\.png\?v=60/);
-  assert.match(html, /<!--\s*deploy-asset-rev:60\s*-->/);
-  assert.ok(!/<text[\s>]/.test(gateCardHtml), "no SVG text in static gate");
-  assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear");
-  assert.match(html, /class="settings-overlay"/);
-  assert.match(html, /purge.*unregister/s);
+  assert.match(html, /id="coachOnboard"/);
+  assert.match(html, /Hi! I'm your daily coach/);
+  assert.match(html, /What's your name\?/);
+  assert.match(html, /id="onboardNameInput"/);
+  assert.match(html, /id="onboardContinueBtn"/);
+  assert.match(html, /id="onboardingPersonaImg"/);
+  assert.match(html, /<!--\s*deploy-asset-rev:62\s*-->/);
+  assert.ok(!html.includes('id="userGate"'));
+  assert.ok(!html.includes('data-user="David"'));
+  assert.ok(!html.includes("userSwitchBtn"));
+  assert.match(html, /persona-david\.png\?v=62/);
+  assert.ok(!/eigenes\s+konto/i.test(html));
+  assert.match(html, /id="resetProfileBtn"/);
 });
 
-test("app.js mounts persona gate as PNG imgs (PERSONA_ICON_SRC, no inline SVG strings)", () => {
+test("app.js: profile v1, persona hash, single data bucket", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
-  assert.match(js, /PROFILE_GATE_ICON_VERSION\s*=\s*"gate-png-v60"/);
-  assert.match(js, /buildPersonaGateImg/);
-  assert.match(js, /mountProfileGateIcons/);
-  assert.match(js, /applyDisplayModeClass/);
-  assert.match(js, /pwa-standalone/);
-  assert.match(js, /persona-gate-icon/);
+  assert.match(js, /PROFILE_KEY\s*=\s*"daily-core-profile-v1"/);
+  assert.match(js, /DATA_STORAGE_KEY\s*=\s*"daily-core-v3-data"/);
+  assert.match(js, /personaFromDisplayName/);
+  assert.match(js, /wireCoachOnboard/);
+  assert.match(js, /Welcome back,/);
+  assert.match(js, /Hi,/);
   assert.match(js, /PERSONA_ICON_SRC/);
-  assert.ok(!js.includes("PERSONA_GATE_MARKUP"));
-  assert.ok(!js.includes("<text"), "no SVG text snippets in JS");
-  assert.ok(!js.includes("personaSrcMap"), "icons must not be scraped from DOM");
+  assert.ok(!js.includes("userGate"));
+  assert.ok(!js.includes("mountProfileGateIcons"));
   assert.match(js, /service-worker\.js/);
   assert.match(js, /updateViaCache:\s*"none"/);
 });
@@ -109,10 +105,10 @@ test("manifest.webmanifest is valid and points to start URL", () => {
   assert.ok(m.start_url);
 });
 
-test("service worker: v60, purge old daily-core caches, network-first for documents", () => {
+test("service worker: v62, purge old daily-core caches, network-first for documents", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v60"/);
-  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=60"/);
+  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v62"/);
+  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=62"/);
   assert.match(sw, /startsWith\("daily-core-"\)/);
   assert.match(sw, /networkFirstWithCacheFallback/);
   assert.match(sw, /navigate/);
