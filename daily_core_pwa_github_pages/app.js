@@ -1,25 +1,32 @@
 "use strict";
 
+/**
+ * Static PWA (no React/Vite). Profile icons are real files under ./assets/personas/.
+ * Visible “letter” shapes are vector art inside those SVGs, not initials/charAt fallbacks.
+ */
 const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
 
-let personaSrcCache = null;
-function personaSrcMap() {
-  if (!personaSrcCache) {
-    personaSrcCache = {};
-    document.querySelectorAll("button.user-pick[data-user]").forEach((btn) => {
-      const u = btn.getAttribute("data-user");
-      const im = btn.querySelector("img.persona-avatar");
-      if (u && im?.src) personaSrcCache[u] = im.src;
-    });
+/** Relative to index.html (GitHub Pages deploy root = this folder). */
+const PERSONA_ICON_SRC = {
+  David: "./assets/personas/persona-david.svg",
+  Michalis: "./assets/personas/persona-michalis.svg",
+  Nico: "./assets/personas/persona-nico.svg",
+};
+
+function personaIconUrl(user) {
+  const rel = PERSONA_ICON_SRC[user] || PERSONA_ICON_SRC.David;
+  try {
+    return new URL(rel, document.baseURI || window.location.href).href;
+  } catch {
+    return rel;
   }
-  return personaSrcCache;
 }
 
 function headerPersonaSrc(user) {
-  const m = personaSrcMap();
-  return m[user] || m.David;
+  return personaIconUrl(user || "David");
 }
+
 const defaults = {
   pushGoal: 100,
   pushSets: 10,

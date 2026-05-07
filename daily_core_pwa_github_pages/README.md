@@ -1,6 +1,6 @@
 # Daily Core
 
-Private PWA für tägliche Liegestütze und Planks – Profile **David** und **Michalis**, optional Cloud-Sync über Supabase.
+Private PWA für tägliche Liegestütze und Planks – Profile **David**, **Michalis** und **Nico** (Icons: `assets/personas/*.svg`), optional Cloud-Sync über Supabase.
 
 ## Cloud-Sync (gemeinsamer Stand)
 

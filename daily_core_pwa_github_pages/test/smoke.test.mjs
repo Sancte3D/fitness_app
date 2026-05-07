@@ -33,9 +33,9 @@ test("index.html references persona SVG files for avatars", () => {
   assert.match(html, /id="themeColorMeta"/);
   assert.match(html, /id="userGateTitle"/);
   assert.match(html, /src="\.\/app\.js"/);
-  assert.match(html, /src="\.\/persona-david\.svg"/);
-  assert.match(html, /src="\.\/persona-michalis\.svg"/);
-  assert.match(html, /src="\.\/persona-nico\.svg"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-david\.svg"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-michalis\.svg"/);
+  assert.match(html, /src="\.\/assets\/personas\/persona-nico\.svg"/);
   assert.match(html, /class="persona-frame"/);
   assert.equal((html.match(/class="persona-frame"/g) || []).length, 3);
   assert.match(html, /id="personaHeaderIcon"/);
@@ -46,7 +46,7 @@ test("index.html references persona SVG files for avatars", () => {
   assert.match(html, /apple-touch-icon\.png/);
 });
 
-test("app.js registers service worker and persona src map", () => {
+test("app.js registers service worker and persona icon URLs", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
   assert.match(js, /service-worker\.js/);
   assert.match(js, /themeColorMeta/);
@@ -55,6 +55,9 @@ test("app.js registers service worker and persona src map", () => {
   assert.match(js, /syncBodyScrollLock/);
   assert.match(js, /readStoredUserTheme/);
   assert.match(js, /headerPersonaSrc/);
+  assert.match(js, /PERSONA_ICON_SRC/);
+  assert.match(js, /personaIconUrl/);
+  assert.ok(!js.includes("personaSrcMap"), "no DOM-scraped persona map; use PERSONA_ICON_SRC");
 });
 
 test("app.js uses per-user storage prefix", () => {
@@ -66,9 +69,10 @@ test("app.js uses per-user storage prefix", () => {
 });
 
 test("persona avatars exist", () => {
-  assert.ok(fs.existsSync(path.join(root, "persona-david.svg")));
-  assert.ok(fs.existsSync(path.join(root, "persona-michalis.svg")));
-  assert.ok(fs.existsSync(path.join(root, "persona-nico.svg")));
+  const d = path.join(root, "assets", "personas", "persona-david.svg");
+  assert.ok(fs.existsSync(d), `missing ${d}`);
+  assert.ok(fs.existsSync(path.join(root, "assets", "personas", "persona-michalis.svg")));
+  assert.ok(fs.existsSync(path.join(root, "assets", "personas", "persona-nico.svg")));
 });
 
 test("manifest.webmanifest is valid and points to start URL", () => {
@@ -86,7 +90,7 @@ test("service worker lists cached static assets", () => {
   assert.match(sw, /app\.js/);
   assert.match(sw, /index\.html/);
   assert.match(sw, /manifest\.webmanifest/);
-  assert.match(sw, /persona-david\.svg/);
+  assert.match(sw, /assets\/personas\/persona-david\.svg/);
   assert.match(sw, /icon-192\.png/);
 });
 
