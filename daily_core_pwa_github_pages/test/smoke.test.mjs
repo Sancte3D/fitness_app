@@ -28,6 +28,8 @@ test("index has no partner-only panel", () => {
 test("index.html uses data-URI persona avatars (img, no file path)", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
   assert.match(html, /id="userGate"/);
+  assert.match(html, /id="themeColorMeta"/);
+  assert.match(html, /id="userGateTitle"/);
   assert.match(html, /src="\.\/app\.js"/);
   assert.match(html, /data:image\/svg\+xml/);
   assert.match(html, /class="persona-avatar"/);
@@ -41,7 +43,8 @@ test("index.html uses data-URI persona avatars (img, no file path)", () => {
 test("app.js registers service worker and persona src map", () => {
   const js = fs.readFileSync(path.join(root, "app.js"), "utf8");
   assert.match(js, /service-worker\.js/);
-  assert.match(js, /personaSrcMap/);
+  assert.match(js, /themeColorMeta/);
+  assert.match(js, /apple-mobile-web-app-status-bar-style/);
   assert.match(js, /headerPersonaSrc/);
 });
 
