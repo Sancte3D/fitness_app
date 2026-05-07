@@ -20,10 +20,9 @@ test("index uses Electric Kiwi theme tokens", () => {
   assert.match(html, /--neutral-050:#F7F7F2/);
 });
 
-test("peer panel hidden until cloud configured", () => {
+test("index has no partner-only panel", () => {
   const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(html, /peer-panel--hidden/);
-  assert.match(html, /id="peerPanel"/);
+  assert.ok(!html.includes('id="peerPanel"'));
 });
 
 test("index.html loads app and profile gate", () => {

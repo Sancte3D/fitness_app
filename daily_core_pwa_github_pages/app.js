@@ -17,10 +17,7 @@ const defaults = {
 let activeUser = null;
 let state = null;
 let timer = null;
-let peerTimer = null;
 let pushTimer = null;
-let peerSnapshot = null;
-let peerUpdatedAt = null;
 let eventsBound = false;
 
 const $ = (id) => document.getElementById(id);
@@ -62,12 +59,6 @@ const ids = [
   "userGate",
   "userEyebrow",
   "userSwitchBtn",
-  "peerPanel",
-  "peerSectionTitle",
-  "peerIntro",
-  "peerFreshness",
-  "peerStats",
-  "peerCalendarGrid",
   "settingsStorageNote",
 ];
 const el = {};
@@ -356,89 +347,6 @@ function fillCalendarGrid(gridEl, hist) {
   gridEl.replaceChildren(f);
 }
 
-function renderPeer() {
-  const panel = el.peerPanel;
-  if (!getSyncCfg()) {
-    if (panel) panel.classList.add("peer-panel--hidden");
-    el.settingsStorageNote.textContent = "nur lokal · Profil";
-    return;
-  }
-  if (panel) panel.classList.remove("peer-panel--hidden");
-
-  const peer = USER_NAMES.find((u) => u !== activeUser);
-  el.peerSectionTitle.textContent = peer ? `${peer}` : "Partner";
-  el.peerIntro.textContent = peer
-    ? `Kalender und Streak von ${peer} (Nur-Lesen). Nur ${peer} kann dort trainieren und Speichern.`
-    : "—";
-
-  el.settingsStorageNote.textContent = "Profil + Supabase";
-
-  if (!peer) {
-    el.peerFreshness.textContent = "—";
-    return;
-  }
-
-  if (peerUpdatedAt) {
-    const t = new Date(peerUpdatedAt).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
-    el.peerFreshness.textContent = `Stand ${t}`;
-  } else el.peerFreshness.textContent = "—";
-
-  if (!peerSnapshot) {
-    el.peerStats.replaceChildren();
-    const p = document.createElement("p");
-    p.className = "peer-sub";
-    p.style.marginBottom = "0";
-    p.textContent = "Noch keine Cloud-Daten für dieses Profil.";
-    el.peerStats.appendChild(p);
-    el.peerCalendarGrid.replaceChildren();
-    return;
-  }
-
-  const st = { ...defaults, ...peerSnapshot.settings };
-  const hist = peerSnapshot.history || {};
-  const sess = peerSnapshot.session;
-  const streak = streakFrom(hist);
-  const doneToday = !!(sess && sess.date === key() && sess.completed);
-
-  el.peerStats.replaceChildren();
-  ["peer-stat", "peer-stat", "peer-stat"].forEach((cls, i) => {
-    const div = document.createElement("div");
-    div.className = cls;
-    if (i === 0) div.textContent = `${st.pushGoal} Push-Ziel`;
-    if (i === 1) div.textContent = `${st.plankMinutes} min Plank`;
-    if (i === 2) div.textContent = doneToday ? `Heute: fertig · ${streak} Tage Streak` : `Heute: offen · ${streak} Tage Streak`;
-    el.peerStats.appendChild(div);
-  });
-
-  fillCalendarGrid(el.peerCalendarGrid, hist);
-}
-
-async function refreshPeer() {
-  if (!activeUser) return;
-  const peer = USER_NAMES.find((u) => u !== activeUser);
-  if (!peer || !getSyncCfg()) {
-    peerSnapshot = null;
-    peerUpdatedAt = null;
-    renderPeer();
-    return;
-  }
-  const row = await cloudPull(peer);
-  peerSnapshot = row?.state ? norm(row.state) : null;
-  peerUpdatedAt = row?.updated_at || null;
-  renderPeer();
-}
-
-function startPeerPoll() {
-  clearInterval(peerTimer);
-  peerTimer = null;
-  if (!getSyncCfg()) {
-    renderPeer();
-    return;
-  }
-  refreshPeer();
-  peerTimer = setInterval(refreshPeer, 12000);
-}
-
 function renderSteps() {
   const f = document.createDocumentFragment(),
     a = state.session.currentIndex;
@@ -534,7 +442,7 @@ function render() {
 
   renderSteps();
   renderCal();
-  renderPeer();
+  el.settingsStorageNote.textContent = getSyncCfg() ? "Profil + Supabase" : "nur lokal · Profil";
   bindSettingsForm();
   persistLocal();
 }
@@ -702,10 +610,7 @@ function bindEvents() {
     $("userGate").classList.add("open");
   };
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      tick();
-      refreshPeer();
-    }
+    if (!document.hidden) tick();
   });
   window.addEventListener("beforeunload", persistLocal);
 }
@@ -721,7 +626,6 @@ async function chooseUser(u) {
   await loadInitialState();
   render();
   if (!timer) timer = setInterval(tick, 1000);
-  startPeerPoll();
 }
 
 function wireUserGate() {
@@ -745,7 +649,6 @@ function boot() {
     loadInitialState().then(() => {
       render();
       if (!timer) timer = setInterval(tick, 1000);
-      startPeerPoll();
     });
   }
 }
