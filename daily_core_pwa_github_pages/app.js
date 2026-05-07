@@ -405,6 +405,10 @@ function render() {
   if (!state || !activeUser) return;
   ensure();
   document.documentElement.dataset.theme = state.settings.theme;
+  const metaTheme = document.getElementById("themeColorMeta");
+  if (metaTheme) metaTheme.content = state.settings.theme === "dark" ? "#000000" : "#F7F7F2";
+  const appleBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (appleBar) appleBar.content = state.settings.theme === "dark" ? "black-translucent" : "default";
   const p = pct(),
     s = cur(),
     rest = isRest();
