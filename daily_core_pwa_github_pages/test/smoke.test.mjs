@@ -33,6 +33,9 @@ test("index.html uses data-URI persona avatars (img, no file path)", () => {
   assert.match(html, /class="persona-avatar"/);
   assert.equal((html.match(/class="persona-avatar"/g) || []).length, 3);
   assert.match(html, /id="personaHeaderIcon"/);
+  assert.match(html, /class="settings-overlay"/);
+  assert.match(html, /id="settingsPanel"/);
+  assert.match(html, /role="dialog"/);
 });
 
 test("app.js registers service worker and persona src map", () => {

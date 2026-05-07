@@ -60,6 +60,8 @@ const ids = [
   "settingsBtn",
   "themeBtn",
   "settingsPanel",
+  "settingsBackdrop",
+  "settingsCloseBtn",
   "pushGoal",
   "pushSets",
   "pushSeconds",
@@ -578,6 +580,13 @@ function importFile(file) {
   r.readAsText(file);
 }
 
+function setSettingsOpen(on) {
+  if (!el.settingsPanel) return;
+  el.settingsPanel.classList.toggle("open", on);
+  el.settingsPanel.setAttribute("aria-hidden", on ? "false" : "true");
+  document.body.style.overflow = on ? "hidden" : "";
+}
+
 function toast(t) {
   el.toast.textContent = t;
   el.toast.classList.add("show");
@@ -608,7 +617,9 @@ function bindEvents() {
     }
     completeStep();
   };
-  el.settingsBtn.onclick = () => el.settingsPanel.classList.toggle("open");
+  el.settingsBtn.onclick = () => setSettingsOpen(!el.settingsPanel.classList.contains("open"));
+  el.settingsBackdrop.onclick = () => setSettingsOpen(false);
+  el.settingsCloseBtn.onclick = () => setSettingsOpen(false);
   el.themeBtn.onclick = () => {
     state.settings.theme = state.settings.theme === "dark" ? "light" : "dark";
     queueSync();
@@ -626,6 +637,9 @@ function bindEvents() {
     if (!confirm("Anderes Profil wählen? Der aktuelle Stand ist lokal (und bei Cloud aktiv) bereits gesichert.")) return;
     $("userGate").classList.add("open");
   };
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && el.settingsPanel.classList.contains("open")) setSettingsOpen(false);
+  });
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) tick();
   });
