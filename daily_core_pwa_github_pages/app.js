@@ -10,7 +10,7 @@ const PROFILE_KEY = "daily-core-profile-v1";
 const LEGACY_ACTIVE_KEY = "daily-core-active-user";
 const DATA_STORAGE_KEY = "daily-core-v3-data";
 
-const PERSONA_ASSET_QS = "?v=62";
+const PERSONA_ASSET_QS = "?v=63";
 
 const PERSONA_ICON_SRC = {
   David: `./assets/personas/persona-david.png${PERSONA_ASSET_QS}`,
@@ -845,7 +845,13 @@ function finishOnboardingFirstRun() {
   });
 }
 
+function removeLegacyProfileGateDom() {
+  document.getElementById("userGate")?.remove();
+  document.querySelectorAll(".user-gate").forEach((n) => n.remove());
+}
+
 function boot() {
+  removeLegacyProfileGateDom();
   ids.forEach((id) => {
     el[id] = $(id);
   });
