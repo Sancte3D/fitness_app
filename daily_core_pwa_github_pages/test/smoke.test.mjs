@@ -39,11 +39,12 @@ test("index.html profile gate uses inline SVG icons; header uses PNG", () => {
     "profile gate must embed vectors in HTML, not separate PNG requests",
   );
   assert.equal((html.match(/class="persona-gate-icon"/g) || []).length, 3);
-  assert.match(html, /M 38 32 A 16 16 0 0 1 38 64/);
+  assert.match(html, /a15\.5,15\.5,0,0,0,2\.61-1\.76/);
+  assert.match(html, /34\.68,43\.55/);
   assert.match(html, /3\.25-5S48\.84/);
   assert.match(html, /a5\.43,5\.43/);
   assert.match(html, /M29\.94,34\.61/);
-  assert.match(html, /persona-david\.png\?v=54/);
+  assert.match(html, /persona-david\.png\?v=55/);
   assert.ok(!html.includes("persona-michalis.png"), "Michalis gate is inline SVG; PNG only for header icon when active");
   assert.ok(!/class="persona-avatar"[^>]*src="data:image/.test(html), "no data: URIs on raster avatars");
   assert.ok(!/eigenes\s+konto/i.test(html), "Eigenes Konto must not appear in profile gate HTML");
@@ -52,7 +53,7 @@ test("index.html profile gate uses inline SVG icons; header uses PNG", () => {
   assert.match(html, /id="personaHeaderIcon"/);
   assert.match(html, /class="settings-overlay"/);
   assert.match(html, /id="settingsPanel"/);
-  assert.match(html, /<!--\s*deploy-asset-rev:54\s*-->/);
+  assert.match(html, /<!--\s*deploy-asset-rev:55\s*-->/);
   assert.match(html, /purge.*unregister/s);
   assert.match(html, /role="dialog"/);
   assert.match(html, /apple-touch-icon\.png/);
@@ -115,8 +116,8 @@ test("service worker lists cached static assets", () => {
   assert.match(sw, /manifest\.webmanifest/);
   assert.match(sw, /assets\/personas\/persona-david\.png/);
   assert.match(sw, /icon-192\.png/);
-  assert.match(sw, /const CACHE_NAME="daily-core-v54"/);
-  assert.match(sw, /PERSONA_QS="\?v=54"/);
+  assert.match(sw, /const CACHE_NAME="daily-core-v55"/);
+  assert.match(sw, /PERSONA_QS="\?v=55"/);
 });
 
 test("referenced icons exist on disk", () => {
