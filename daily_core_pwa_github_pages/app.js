@@ -10,7 +10,7 @@ const USER_NAMES = ["David", "Michalis", "Nico"];
 const ACTIVE_USER_KEY = "daily-core-active-user";
 const PERSONA_FALLBACK_USER = "David";
 
-const PERSONA_ASSET_QS = "?v=54";
+const PERSONA_ASSET_QS = "?v=55";
 
 /** Relative to index.html (GitHub Pages artifact root = this folder). */
 const PERSONA_ICON_SRC = {
