@@ -10,7 +10,7 @@ const PROFILE_KEY = "daily-core-profile-v1";
 const LEGACY_ACTIVE_KEY = "daily-core-active-user";
 const DATA_STORAGE_KEY = "daily-core-v3-data";
 
-const PERSONA_ASSET_QS = "?v=63";
+const PERSONA_ASSET_QS = "?v=64";
 
 const PERSONA_ICON_SRC = {
   David: `./assets/personas/persona-david.png${PERSONA_ASSET_QS}`,
@@ -98,6 +98,25 @@ function migrateLegacyTrainingBlob() {
       return;
     }
   }
+}
+
+/** Full local wipe: profile, training blob, legacy keys — then reload (onboarding if no cloud re-hydrate). */
+function wipeAllLocalAppDataAndReload() {
+  try {
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(DATA_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_ACTIVE_KEY);
+    PERSONA_IDS.forEach((id) => localStorage.removeItem(`daily-core-v3-${id}`));
+    localStorage.removeItem("daily-core-v3");
+  } catch {
+    /* ignore */
+  }
+  try {
+    sessionStorage.clear();
+  } catch {
+    /* ignore */
+  }
+  location.reload();
 }
 
 const defaults = {
@@ -675,11 +694,13 @@ function resetToday() {
 }
 
 function resetAll() {
-  if (!confirm("Alles löschen?")) return;
-  state = fresh();
-  queueSync();
-  render();
-  toast("Alles zurückgesetzt");
+  if (
+    !confirm(
+      "Alle lokalen Daten löschen? Profil, Training und Einstellungen auf diesem Gerät werden entfernt und die App lädt neu (Onboarding erneut).",
+    )
+  )
+    return;
+  wipeAllLocalAppDataAndReload();
 }
 
 function backup() {
@@ -763,17 +784,7 @@ function bindEvents() {
   el.importFile.onchange = (e) => importFile(e.target.files[0]);
   el.resetProfileBtn.onclick = () => {
     if (!confirm("Profil neu starten? Dein Name, Avatar und alle Trainingsdaten auf diesem Gerät werden gelöscht.")) return;
-    localStorage.removeItem(PROFILE_KEY);
-    localStorage.removeItem(DATA_STORAGE_KEY);
-    localStorage.removeItem(LEGACY_ACTIVE_KEY);
-    PERSONA_IDS.forEach((id) => localStorage.removeItem(`daily-core-v3-${id}`));
-    localStorage.removeItem("daily-core-v3");
-    try {
-      sessionStorage.clear();
-    } catch {
-      /* ignore */
-    }
-    location.reload();
+    wipeAllLocalAppDataAndReload();
   };
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && el.settingsPanel.classList.contains("open")) setSettingsOpen(false);

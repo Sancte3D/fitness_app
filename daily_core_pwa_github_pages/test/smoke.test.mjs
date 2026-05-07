@@ -35,13 +35,13 @@ test("coach onboarding overlay (no legacy three-tile profile gate)", () => {
   assert.match(html, /id="onboardNameInput"/);
   assert.match(html, /id="onboardContinueBtn"/);
   assert.match(html, /id="onboardingPersonaImg"/);
-  assert.match(html, /<!--\s*deploy-asset-rev:63\s*-->/);
+  assert.match(html, /<!--\s*deploy-asset-rev:64\s*-->/);
   assert.ok(!html.includes('id="userGate"'));
   assert.ok(!html.includes('data-user="David"'));
   assert.ok(!html.includes("userSwitchBtn"));
   assert.ok(!html.includes(".user-gate{"), "legacy three-tile gate CSS must be gone");
   assert.ok(!html.includes("user-picks"), "no user-picks grid styles");
-  assert.match(html, /persona-david\.png\?v=63/);
+  assert.match(html, /persona-david\.png\?v=64/);
   assert.ok(!/eigenes\s+konto/i.test(html));
   assert.match(html, /id="resetProfileBtn"/);
 });
@@ -56,6 +56,7 @@ test("app.js: profile v1, persona hash, single data bucket", () => {
   assert.match(js, /Hi,/);
   assert.match(js, /PERSONA_ICON_SRC/);
   assert.match(js, /removeLegacyProfileGateDom/);
+  assert.match(js, /wipeAllLocalAppDataAndReload/);
   assert.match(js, /service-worker\.js/);
   assert.match(js, /updateViaCache:\s*"none"/);
 });
@@ -106,10 +107,10 @@ test("manifest.webmanifest is valid and points to start URL", () => {
   assert.ok(m.start_url);
 });
 
-test("service worker: v63, purge old daily-core caches, network-first for documents", () => {
+test("service worker: v64, purge old daily-core caches, network-first for documents", () => {
   const sw = fs.readFileSync(path.join(root, "service-worker.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v63"/);
-  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=63"/);
+  assert.match(sw, /const CACHE_NAME\s*=\s*"daily-core-v64"/);
+  assert.match(sw, /PERSONA_QS\s*=\s*"\?v=64"/);
   assert.match(sw, /startsWith\("daily-core-"\)/);
   assert.match(sw, /networkFirstWithCacheFallback/);
   assert.match(sw, /navigate/);
